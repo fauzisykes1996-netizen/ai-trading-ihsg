@@ -8,8 +8,8 @@
   <title>AI Trading Agent IHSG</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
-  <script src="https://unpkg.com/lightweight-charts@4.1.3/dist/lightweight-charts.standalone.production.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+  <noscript><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet"></noscript>
   <style>
     :root { --bg-dark:#080d1a; --card-bg:#121a2d; --card-border:#1f2c47; --text-main:#f8fafc; --text-muted:#8ca0ba; --accent:#38bdf8; --accent2:#818cf8; --green:#22c55e; --red:#ef4444; --yellow:#f59e0b; --gemini-purple:#a855f7; --safe-bottom:env(safe-area-inset-bottom,20px); --sans:'Plus Jakarta Sans',-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; --mono:'JetBrains Mono',ui-monospace,Menlo,Consolas,monospace; }
     body[data-theme="violet"] { --accent:#a78bfa; --accent2:#c084fc; }
@@ -194,8 +194,21 @@
   <div id="splash">
     <div class="logo">⚡</div>
     <div class="title">AI Trading Agent IHSG</div>
-    <div class="tag">Multi-Agent • Portfolio • Jurnal • Build v6.5</div>
+    <div class="tag">Multi-Agent • Portfolio • Jurnal • Build v6.5.1</div>
   </div>
+  <script>
+    /* SPLASH-GUARD: script mandiri, tetap jalan walau script utama mati */
+    window.__APP_BOOTED = false;
+    setTimeout(function () { var s = document.getElementById('splash'); if (s && !s.classList.contains('gone')) s.classList.add('gone'); }, 3000);
+    setTimeout(function () {
+      if (!window.__APP_BOOTED) {
+        var d = document.createElement('div');
+        d.style.cssText = 'position:fixed;left:0;right:0;bottom:0;background:#3b1010;color:#fecaca;padding:10px 14px;font:600 12px sans-serif;z-index:400;text-align:center';
+        d.innerText = '⚠️ Script utama gagal dimuat — file kemungkinan korup/terpotong saat upload. Upload ulang index.html yang utuh (awal <!DOCTYPE html>, akhir </html>).';
+        document.body.appendChild(d);
+      }
+    }, 4500);
+  </script>
   <div id="toast" class="toast hidden"></div>
 
   <div id="apiKeyModal" class="modal hidden">
@@ -213,7 +226,7 @@
   <header id="appHeader">
     <div>
       <div class="app-title">AI Trading Agent IHSG</div>
-      <div style="font-size: 0.62rem; color: var(--text-muted);">Multi-Agent • BEI • <strong>Build v6.5</strong></div>
+      <div style="font-size: 0.62rem; color: var(--text-muted);">Multi-Agent • BEI • <strong>Build v6.5.1</strong></div>
     </div>
     <button class="btn-key" id="keyStatusBtn" onclick="toggleKeyModal(true)">🔑 Key</button>
   </header>
@@ -274,7 +287,7 @@
           <div class="card-title"><span>Grafik Candlestick Harian</span><span class="agent-pill tech">Lightweight Charts</span></div>
           <div id="candleChart" style="height:240px;"></div>
           <div id="patternChips" style="margin-top:10px;"></div>
-          <div class="src-note">Garis putus-putus: Support (hijau) & Resistance (merah). Badge pola candlestick terdeteksi otomatis dari 3 candle terakhir.</div>
+          <div class="src-note">Garis putus-putus: Support (hijau) & Resistance (merah). Badge pola candlestick dari 3 candle terakhir.</div>
         </div>
         <div class="card">
           <div class="card-title"><span>Indikator Teknikal</span><span class="agent-pill tech">Dihitung Perangkat</span></div>
@@ -455,7 +468,7 @@
           <div class="metric-box"><div class="metric-label">Rata-rata Perubahan</div><div class="metric-value" id="trAvg">-</div></div>
           <div class="metric-box"><div class="metric-label">Status</div><div class="metric-value" id="trNote">Belum ada data</div></div>
         </div>
-        <div class="src-note">Entri berusia ≥2 hari dibandingkan dengan harga terbaru (cache/TradingView). Bullish menang bila naik; Bearish menang bila turun; Sideways menang bila |Δ| ≤ 2%; grade A/B menang bila naik, C/D menang bila tidak naik.</div>
+        <div class="src-note">Entri berusia ≥2 hari dibandingkan harga terbaru. Bullish menang bila naik; Bearish menang bila turun; Sideways menang bila |Δ| ≤ 2%; grade A/B menang bila naik, C/D menang bila tidak naik.</div>
       </div>
       <div class="card">
         <div class="card-title"><span>📔 Jurnal Analisis</span><button class="btn-mini" onclick="clearJournal()">🗑 Bersihkan</button></div>
@@ -486,9 +499,12 @@
         <div class="src-note">Mencakup watchlist, portfolio, jurnal, alert, dan pilihan mesin AI.</div>
       </div>
       <div class="card">
-        <div class="card-title">Baru di Build v6.5</div>
+        <div class="card-title">Baru di Build v6.5.1 (Splash-Guard)</div>
         <div style="font-size:0.78rem; line-height:1.6; color:#cbd5e1;">
-          Portfolio tracker + donut alokasi • Jurnal & track record win-rate • Alert target harga • Kalkulator ukuran posisi • Detektor pola candlestick • Max drawdown/volatilitas/beta • Pita valuasi 3 metode • Termometer pasar • 4 tema + OLED • Skeleton shimmer • Auto-refresh live • Backup JSON • Navigasi baru (Wajar menyatu di Klinik; Watchlist naik kelas jadi Porto).
+          Splash tidak bisa mentok lagi: timer darurat mandiri + banner diagnostik bila script utama korup.<br>
+          CDN grafik dimuat dinamis (tidak menahan boot); Google Fonts non-blocking.<br>
+          Seluruh rantai boot dibungkus try/catch/finally.<br>
+          Semua fitur v6.5 tetap utuh: portfolio, jurnal, track record, alert, kalkulator posisi, pola candle, statistik risiko, pita valuasi, termometer, tema, backup.
         </div>
       </div>
       <div class="disclaimer-box">
@@ -721,10 +737,7 @@
     function detectPatterns(candle) {
       const q = candle.indicators.quote[0];
       const rows = [];
-      for (let i = 0; i < (q.close||[]).length; i++) {
-        if (q.close[i] == null) continue;
-        rows.push({ o:q.open[i], h:q.high[i], l:q.low[i], c:q.close[i] });
-      }
+      for (let i = 0; i < (q.close||[]).length; i++) { if (q.close[i] == null) continue; rows.push({ o:q.open[i], h:q.high[i], l:q.low[i], c:q.close[i] }); }
       const out = [];
       if (rows.length < 3) return out;
       const c1 = rows[rows.length-1], c2 = rows[rows.length-2], c3 = rows[rows.length-3];
@@ -783,6 +796,16 @@
       return isNaN(n) ? null : n;
     }
 
+    function ensureChartsLib(cb) {
+      if (typeof LightweightCharts !== 'undefined') return cb(true);
+      if (window.__chartsTried) return cb(false);
+      window.__chartsTried = true;
+      const s = document.createElement('script');
+      s.src = 'https://unpkg.com/lightweight-charts@4.1.3/dist/lightweight-charts.standalone.production.js';
+      s.onload = () => cb(true);
+      s.onerror = () => cb(false);
+      document.head.appendChild(s);
+    }
     function renderRsiGauge(v) {
       const box = $('rsiGauge'); if (!box) return;
       if (v === null || v === undefined || isNaN(v)) { box.innerHTML = '<div class="metric-value">Data tidak tersedia</div>'; return; }
@@ -832,7 +855,12 @@
     }
     let candleChart = null, candleSeries = null, candlePLs = [];
     function renderCandles(candle, support, resistance) {
-      if (typeof LightweightCharts === 'undefined') { $('candleCard').style.display = 'none'; return; }
+      window.__candleArgs = [candle, support, resistance];
+      if (typeof LightweightCharts === 'undefined') {
+        $('candleCard').style.display = 'none';
+        ensureChartsLib(ok => { if (ok && window.__candleArgs) renderCandles.apply(null, window.__candleArgs); });
+        return;
+      }
       try {
         const q = candle.indicators.quote[0], ts = candle.timestamp || [];
         const data = [];
@@ -1345,7 +1373,6 @@
       $('volumeList').innerHTML = top.length ? top.map(r => `<div class="mkt-row"><span><strong>${r.symbol}</strong> <span style="color:var(--text-muted);font-size:0.7rem;font-family:var(--mono);">${volIDR(r.volume)}</span></span><span class="${r.chPct >= 0 ? 'green' : 'red'}" style="font-weight:700;font-family:var(--mono);">${r.chPct >= 0 ? '+' : ''}${r.chPct.toFixed(2)}%</span></div>`).join('') : '<div style="font-size:0.78rem;color:var(--text-muted);">Data tidak tersedia</div>';
     }
 
-    // ===== PORTO: watchlist + portfolio + alerts =====
     function addToWatchlistCurrent(btn) {
       if (!currentTicker) return;
       if (!watchlist.includes(currentTicker)) {
@@ -1388,7 +1415,7 @@
       $('pfValue').innerText = val ? bigIDR(val) : "-";
       $('pfCost').innerText = cost ? bigIDR(cost) : "-";
       const pnl = val - cost;
-      $('pfPnl').innerText = keys.length ? (pnl >= 0 ? "+" : "") + bigIDR(Math.abs(pnl)).replace("Rp ","Rp ") : "-";
+      $('pfPnl').innerText = keys.length ? (pnl >= 0 ? "+" : "") + bigIDR(Math.abs(pnl)) : "-";
       $('pfPnl').className = "metric-value " + (pnl >= 0 ? "green" : "red");
       $('pfPnlPct').innerText = cost ? ((pnl / cost) * 100).toFixed(2) + "%" : "-";
       $('pfPnlPct').className = "metric-value " + (pnl >= 0 ? "green" : "red");
@@ -1409,7 +1436,7 @@
       });
       const al = $('alertList');
       const act = alerts.filter(a => !a.done), done = alerts.filter(a => a.done);
-      al.innerHTML = (act.length || done.length) ? [...act, ...done].map((a,i) => `<div class="mkt-row"><span><strong>${a.ticker}</strong> <span style="color:var(--text-muted);font-size:0.7rem;">${a.dir === 'above' ? 'naik ke' : 'turun ke'} ${rp(a.target)}</span>${a.done ? ' <span class="green">✅ tersentuh</span>' : ''}</span><button class="btn-mini" style="color:var(--red);" onclick="removeAlert(${alerts.indexOf(a)})">✕</button></div>`).join('') : '<div style="font-size:0.78rem;color:var(--text-muted);">Belum ada alert.</div>';
+      al.innerHTML = (act.length || done.length) ? [...act, ...done].map(a => `<div class="mkt-row"><span><strong>${a.ticker}</strong> <span style="color:var(--text-muted);font-size:0.7rem;">${a.dir === 'above' ? 'naik ke' : 'turun ke'} ${rp(a.target)}</span>${a.done ? ' <span class="green">✅ tersentuh</span>' : ''}</span><button class="btn-mini" style="color:var(--red);" onclick="removeAlert(${alerts.indexOf(a)})">✕</button></div>`).join('') : '<div style="font-size:0.78rem;color:var(--text-muted);">Belum ada alert.</div>';
     }
     async function refreshPortoPrices() {
       const keys = Object.keys(portfolio);
@@ -1438,20 +1465,4 @@
         if (a.done) return;
         const p = map[a.ticker];
         if (!p) return;
-        if ((a.dir === 'above' && p >= a.target) || (a.dir === 'below' && p <= a.target)) { a.done = true; hit = true; toast("🔔 " + a.ticker + " menyentuh " + rp(a.target) + "!"); }
-      });
-      if (hit) saveLS('ihsg_alerts', alerts);
-    }
-
-    // ===== JURNAL & TRACK RECORD =====
-    function renderJournal() {
-      const box = $('journalList');
-      if (!journal.length) { box.innerHTML = '<div style="font-size:0.78rem;color:var(--text-muted);">Jurnal otomatis terisi setiap laporan Master & Klinik selesai.</div>'; return; }
-      box.innerHTML = journal.slice(0, 30).map((e,i) => `<details class="agent-detail"><summary>${new Date(e.d).toLocaleDateString('id-ID', { day:'2-digit', month:'short' })} • <strong>${e.t}</strong> • ${e.kind === 'clinic' ? '🏥 ' + (e.grade || '-') : '📄 ' + (e.trend || '')} • ${e.p ? rp(e.p) : 'harga -'}</summary><div class="formatted-kv">${esc(e.txt || '-')}</div></details>`).join('');
-    }
-    function clearJournal() { if (!confirm("Hapus seluruh jurnal?")) return; journal = []; saveLS('ihsg_journal', journal); renderJournal(); }
-    async function computeTrack() {
-      const elig = journal.filter(e => e.p && (Date.now() - e.d) > 2*24*3600*1000);
-      if (!elig.length) { $('trNote').innerText = "Belum ada entri ≥2 hari"; return; }
-      $('trNote').innerText = "Menghitung...";
-      const tickers = [...new Set(elig.map(e => e.t))].slice(0, 1
+        if ((a.dir === 'above' && p >= 
