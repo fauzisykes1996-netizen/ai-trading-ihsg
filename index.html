@@ -1,341 +1,1125 @@
-
-<!DOCTYPEhtml
 <!DOCTYPE html>
-<html html>
-<html lang="id"> lang="id">
+<html lang="id">
 <head>
-
-<head>
-    <meta charset="UTF<meta charset="UTF-8">
--8">
-  <meta name  <meta name="viewport" content="viewport" content="width=device-width="width=device-width, initial-scale=, initial-scale=1.0,1.0, maximum-scale=1 maximum-scale=1.0, user.0, user-scalable=no, viewport-scalable=no, viewport-fit=cover">-fit=cover">
-  <meta
-  <meta name="apple-mobile name="apple-mobile-web-app-capable-web-app-capable" content="yes" content="yes">
-  ">
-  <meta name="apple<meta name="apple-mobile-web-app-status-mobile-web-app-status-bar-style" content-bar-style" content="black-translucent="black-translucent">
-  ">
-  <title>AI Trading<title>AI Trading Agent IHSG Agent IHSG</title>
- </title>
-  <script src=" <script src="https://unpkghttps://unpkg.com/lightweight-ch.com/lightweight-charts@4.arts@4.1.3/dist1.3/dist/lightweight-charts/lightweight-charts.standalone.production.js.standalone.production.js"></script>
-"></script>
-  <style>  <style>
-    :root
-    :root { --bg-dark { --bg-dark:#080:#080d1a;d1a; --card-bg:# --card-bg:#121a121a2d; --2d; --card-border:#1card-border:#1f2c4f2c47; --text7; --text-main:#f8-main:#f8fafc; --fafc; --text-muted:#8text-muted:#8ca0ba;ca0ba; --accent:#3 --accent:#38bdf88bdf8; --green:#; --green:#22c522c55e; --5e; --red:#ef4red:#ef4444;444; --yellow:#f --yellow:#f59e059e0b; --gemb; --gemini-purple:#aini-purple:#a855f855f7; --q7; --qwen-blue:#6wen-blue:#6366f366f1; --safe1; --safe-bottom:env(s-bottom:env(safe-area-insetafe-area-inset-bottom,20-bottom,20px); }
-px); }
-    * { box    * { box-sizing:border-box;-sizing:border-box; margin:0; margin:0; padding:0; padding:0; font-family:-apple font-family:-apple-system,BlinkMac-system,BlinkMacSystemFontSystemFont,"SF Pro Text,"SF Pro Text","Segoe UI",","Segoe UI",Roboto,sRoboto,sans-serif; -ans-serif; -webkit-tap-highlightwebkit-tap-highlight-color:transparent-color:transparent; }
-   ; }
-    body { background-color body { background-color:var(--bg:var(--bg-dark); color:-dark); color:var(--text-mainvar(--text-main); padding-bottom:); padding-bottom:calc(75calc(75px + var(--px + var(--safe-bottom));safe-bottom)); min-height:1 min-height:100vh;00vh; display:flex; flex display:flex; flex-direction:column;-direction:column; }
-    header }
-    header { padding:env { padding:env(safe-area-in(safe-area-inset-top,2set-top,20px) 0px) 16px 16px 12px;12px; background:rgba( background:rgba(8,138,13,26,,26,0.920.92); backdrop-filter:); backdrop-filter:blur(14blur(14px); positionpx); position:sticky; top:sticky; top:0; z:0; z-index:50-index:50; border-bottom:; border-bottom:1px solid var1px solid var(--card-border);(--card-border); display:flex; justify display:flex; justify-content:space-between-content:space-between; align-items:center; align-items:center; }
-   ; }
-    .app-title { .app-title { font-size:1 font-size:1.05rem.05rem; font-weight:; font-weight:800;800; background:linear-gradient background:linear-gradient(90deg(90deg,#3,#38bdf88bdf8,#c08,#c084fc); -4fc); -webkit-background-clipwebkit-background-clip:text;:text; -webkit-text-fill -webkit-text-fill-color:transparent;-color:transparent; }
-    . }
-    .btn-key { fontbtn-key { font-size:0.-size:0.7rem; background7rem; background:rgba(1:rgba(168,868,85,245,247,0.7,0.15); color15); color:#c08:#c084fc; border4fc; border:1px solid:1px solid rgba(16 rgba(168,858,85,247,247,0.3,0.35); padding:5); padding:5px 15px 10px; border0px; border-radius:12-radius:12px; fontpx; font-weight:70-weight:700; cursor:pointer0; cursor:pointer; }
-   ; }
-    .container { padding .container { padding:16px:16px; flex:; flex:1; }
-1; }
-    .pipeline-tr    .pipeline-tracker { display:flexacker { display:flex; justify-content:; justify-content:space-between; alignspace-between; align-items:center; background-items:center; background:rgba(1:rgba(18,268,26,45,,45,0.7);0.7); border:1px border:1px solid var(--card solid var(--card-border); border-radius-border); border-radius:12px:12px; padding:8; padding:8px 12px 12px; margin-bottompx; margin-bottom:10px:10px; font-size:; font-size:0.650.65rem; font-weightrem; font-weight:700:700; color:var; color:var(--text-muted);(--text-muted); }
-    . }
-    .pipeline-step.active {pipeline-step.active { color:var(-- color:var(--accent); }
-accent); }
-    .pipeline-step    .pipeline-step.gemini {.gemini { color:#c0 color:#c084fc;84fc; font-weight:8 font-weight:800; }00; }
-    .engine
-    .engine-row { display:flex-row { display:flex; align-items:center; align-items:center; gap:8; gap:8px; margin-bottom:12pxpx; margin-bottom:12px; font-size:0.68; font-size:0.68rem; colorrem; color:var(--text:var(--text-muted); font-muted); font-weight:70-weight:700; }
-0; }
-    .seg {    .seg { display:flex; border display:flex; border:1px solid:1px solid var(--card-border var(--card-border); border-radius:); border-radius:10px;10px; overflow:hidden; } overflow:hidden; }
-    .seg
-    .seg button { background: button { background:var(--card-bgvar(--card-bg); color:); color:var(--text-mutedvar(--text-muted); border:none;); border:none; padding:6px padding:6px 12px 12px; font-size:; font-size:0.680.68rem; font-weightrem; font-weight:800:800; cursor:pointer;; cursor:pointer; }
-    . }
-    .seg button.on-gseg button.on-gemini { backgroundemini { background:rgba(1:rgba(168,868,85,245,247,0.7,0.25); color25); color:#c08:#c084fc; }4fc; }
-    .seg
-    .seg button.on-qwen button.on-qwen { background:rgba { background:rgba(99,(99,102,102,241,241,0.3);0.3); color:#a5 color:#a5b4fc;b4fc; }
-    . }
-    .search-box { displaysearch-box { display:flex; gap::flex; gap:8px; margin8px; margin-bottom:12-bottom:12px; }
-px; }
-    input[type="    input[type="text"] { flextext"] { flex:1; background:1; background:var(--card:var(--card-bg); border:-bg); border:1px solid var1px solid var(--card-border);(--card-border); padding:12 padding:12px 14px 14px; border-radiuspx; border-radius:12px:12px; color:#fff; color:#fff; font-size:; font-size:1rem; text1rem; text-transform:uppercase;-transform:uppercase; font-weight:6 font-weight:600; outline00; outline:none; }
-:none; }
-    input[type="    input[type="text"]:focus {text"]:focus { border-color:var border-color:var(--accent); }(--accent); }
-    .btn
-    .btn-action { background:-action { background:linear-gradient(1linear-gradient(135deg,var35deg,var(--accent),#(--accent),#818cf818cf8); color:#8); color:#080d080d1a; border1a; border:none; border-radius:none; border-radius:12px:12px; padding:0; padding:0 16px 16px; font-weight:; font-weight:800;800; cursor:pointer; } cursor:pointer; }
-    .quick
-    .quick-chips { display-chips { display:flex; gap::flex; gap:6px; overflow6px; overflow-x:auto; padding-x:auto; padding-bottom:8px-bottom:8px; margin-bottom:; margin-bottom:14px;14px; -webkit-overflow -webkit-overflow-scrolling:touch-scrolling:touch; }
-   ; }
-    .quick-chips .quick-chips::-webkit::-webkit-scrollbar { display:none-scrollbar { display:none; }
-   ; }
-    .chip { background .chip { background:var(--card:var(--card-bg); border:-bg); border:1px solid var1px solid var(--card-border);(--card-border); color:var(-- color:var(--text-muted); paddingtext-muted); padding:5px :5px 12px;12px; border-radius:1 border-radius:14px; font4px; font-size:0.-size:0.75rem;75rem; font-weight:6 font-weight:600; white00; white-space:nowrap;-space:nowrap; cursor:pointer; } cursor:pointer; }
-    .chip
-    .chip:active { background:active { background:var(--accent:var(--accent); color:#0); color:#080d180d1a; }
-a; }
-    .card {    .card { background:var(-- background:var(--card-bg); bordercard-bg); border:1px solid:1px solid var(--card-border var(--card-border); border-radius:); border-radius:16px;16px; padding:16 padding:16px; marginpx; margin-bottom:14-bottom:14px; }
-px; }
-    .card-title    .card-title { font-size: { font-size:0.780.78rem; textrem; text-transform:uppercase;-transform:uppercase; color:var(-- color:var(--text-muted); lettertext-muted); letter-spacing:0.-spacing:0.6px; margin6px; margin-bottom:12-bottom:12px; displaypx; display:flex; justify-content:flex; justify-content:space-between;:space-between; align-items:center; align-items:center; font-weight:7 font-weight:700; }00; }
-    .agent
-    .agent-pill { font-size-pill { font-size:0.6:0.62rem; padding2rem; padding:3px 8px; border:3px 8px; border-radius:6px-radius:6px; font-weight:; font-weight:800;800; text-transform:uppercase text-transform:uppercase; }
-   ; }
-    .agent-pill.tech .agent-pill.tech { background:rgba { background:rgba(56,(56,189,189,248,248,0.150.15); color:var); color:var(--accent); border(--accent); border:1px solid:1px solid rgba(56 rgba(56,189,189,248,248,0.3,0.3); }
-   ); }
-    .agent-pill.fund { background: .agent-pill.fund { background:rgba(24rgba(245,155,158,118,11,0.1,0.15); color:5); color:var(--yellow);var(--yellow); border:1px border:1px solid rgba(2 solid rgba(245,145,158,158,11,0.1,0.3); }
-    .agent-pill3); }
-    .agent-pill.risk { background.risk { background:rgba(2:rgba(239,639,68,688,68,0.1,0.15); color:5); color:var(--red); border:1pxvar(--red); border:1px solid rgba(2 solid rgba(239,639,68,68,0.3); }
-   8,68,0.3); }
-    .agent-pill.master .agent-pill.master { background:rgba { background:rgba(192(192,132,132,252,252,0.2,0.2); color:#c); color:#c084fc084fc; border:1; border:1px solid rgba(px solid rgba(192,132,192,132,252,252,0.4);0.4); }
-    . }
-    .price-rowprice-row { display:flex; { display:flex; justify-content:space justify-content:space-between; align-items-between; align-items:flex-end; margin:flex-end; margin-bottom:12-bottom:12px; }
-px; }
-    .ticker-name    .ticker-name { font-size: { font-size:1.451.45rem; font-weightrem; font-weight:800:800; color:#fff; color:#fff; }
-   ; }
-    .current-price { .current-price { font-size:1 font-size:1.45rem.45rem; font-weight:; font-weight:800;800; text-align:right; text-align:right; }
-    . }
-    .price-change { fontprice-change { font-size:0.-size:0.85rem;85rem; font-weight:6 font-weight:600; text00; text-align:right; }-align:right; }
-    .green
-    .green { color:var { color:var(--green); }(--green); } .red { color .red { color:var(--red:var(--red); } .); } .yellow { color:yellow { color:var(--yellow);var(--yellow); }
-    . }
-    .metric-grid { displaymetric-grid { display:grid; grid:grid; grid-template-columns:repeat-template-columns:repeat(2,1(2,1fr); gap:fr); gap:8px; }8px; }
-    .metric
-    .metric-box { background:-box { background:rgba(8,rgba(8,13,213,26,0.6,0.45);45); padding:9px padding:9px; border-radius:; border-radius:10px;10px; border:1px border:1px solid rgba(2 solid rgba(255,255,255,255,255,055,0.05);.05); }
-    . }
-    .metric-label { fontmetric-label { font-size:0.-size:0.68rem;68rem; color:var(-- color:var(--text-muted); margintext-muted); margin-bottom:2-bottom:2px; }
-px; }
-    .metric-value    .metric-value { font-size: { font-size:0.860.86rem; font-weightrem; font-weight:700:700; color:#fff; color:#fff; word-break:; word-break:break-word; }break-word; }
-    .fv
-    .fv-input { width:-input { width:100%;100%; background:rgba( background:rgba(8,138,13,26,,26,0.6);0.6); border:1px border:1px solid var(--card solid var(--card-border); border-radius-border); border-radius:8px;:8px; padding:8px padding:8px; color:#fff; color:#fff; font-size:; font-size:0.850.85rem; font-weightrem; font-weight:700:700; outline:none; outline:none; }
-   ; }
-    .fv-input:focus .fv-input:focus { border-color: { border-color:var(--accent);var(--accent); }
-    . }
-    .src-notesrc-note { font-size: { font-size:0.620.62rem; color:#rem; color:#647464748b; margin8b; margin-top:10-top:10px; line-heightpx; line-height:1.4:1.4; }
-   ; }
-    .agent-chips .agent-chips { display:flex; { display:flex; gap:6px gap:6px; flex-wrap:; flex-wrap:wrap; margin-bottomwrap; margin-bottom:10px:10px; }
-   ; }
-    .achip { .achip { font-size:0 font-size:0.62rem.62rem; font-weight:; font-weight:800;800; padding:4px padding:4px 8px; 8px; border-radius:8 border-radius:8px; border:px; border:1px solid var1px solid var(--card-border);(--card-border); color:var(-- color:var(--text-muted); backgroundtext-muted); background:rgba(8:rgba(8,13,,13,26,026,0.45);.45); }
-    . }
-    .achipachip.run { color:.run { color:var(--yellow);var(--yellow); border-color:rgba border-color:rgba(245(245,158,158,11,,11,0.4);0.4); }
-    . }
-    .achip.ok {achip.ok { color:var(-- color:var(--green); border-colorgreen); border-color:rgba(3:rgba(34,194,197,947,94,0.4,0.4); }
-    .achip.fail { color:var(--red); border-color:rgba(239,68,); }
-    .achip.fail { color:var(--red); border-color:rgba(239,68,68,068,0.4); }.4); }
-    .report
-    .report-card { background:#-card { background:#090f090f1d; border1d; border:1px solid:1px solid #233 #233352;352; border-radius:1 border-radius:14px; padding4px; padding:14px:14px; margin-top:; margin-top:10px;10px; font-size:0 font-size:0.82rem.82rem; line-height:; line-height:1.551.55; color:#cbd; color:#cbd5e1;5e1; }
-    . }
-    .formatted-kv {formatted-kv { background:rgba( background:rgba(0,0,0,0,0,0.0,0.35); border35); border:1px dashed:1px dashed #2a3 #2a3d60;d60; border-radius:8 border-radius:8px; padding:px; padding:12px;12px; margin:10 margin:10px 0;px 0; font-family:ui font-family:ui-monospace,M-monospace,Menlo,Consenlo,Consolas,monolas,monospace; font-sizeospace; font-size:0.8:0.8rem; line-heightrem; line-height:1.4:1.45; color:#5; color:#e2e8e2e8f0; whitef0; white-space:pre-wrap-space:pre-wrap; }
-   ; }
-    details.agent-detail { details.agent-detail { margin-top:8 margin-top:8px; border:px; border:1px solid var1px solid var(--card-border);(--card-border); border-radius:1 border-radius:10px; padding0px; padding:8px :8px 10px;10px; background:rgba( background:rgba(8,138,13,26,,26,0.4);0.4); }
-    details }
-    details.agent-detail summary.agent-detail summary { font-size: { font-size:0.720.72rem; fontrem; font-weight:80-weight:800; color:0; color:var(--accent);var(--accent); cursor:pointer; } cursor:pointer; }
-    details
-    details.agent-detail .formatted.agent-detail .formatted-kv { margin-kv { margin:8px :8px 0 0;0 0; font-size:0 font-size:0.72rem.72rem; }
-   ; }
-    .mkt-row .mkt-row { display:flex; { display:flex; justify-content:space justify-content:space-between; padding:-between; padding:8px 08px 0; border-bottom:; border-bottom:1px solid var1px solid var(--card-border);(--card-border); font-size:0 font-size:0.8rem;.8rem; }
- }
-    .mkt    .mkt-row:last-child {-row:last-child { border-bottom:none; border-bottom:none; }
-    . }
-    .bottom-navbottom-nav { position:fixed { position:fixed; bottom:0; bottom:0; left:0; left:0; right:0; right:0; height:calc; height:calc(54px(54px + var(--safe + var(--safe-bottom));-bottom)); padding-bottom:var padding-bottom:var(--safe-bottom);(--safe-bottom); background:rgba( background:rgba(8,138,13,26,,26,0.950.95); backdrop-filter:); backdrop-filter:blur(14blur(14px); border-toppx); border-top:1px solid:1px solid var(--card-border var(--card-border); display:flex;); display:flex; justify-content:space-around; align-items justify-content:space-around; align-items:center; z-index:10:center; z-index:100; }
-0; }
-    .nav-item    .nav-item { display:flex; { display:flex; flex-direction:column flex-direction:column; align-items:center; align-items:center; justify-content:center; justify-content:center; color:var; color:var(--text-muted);(--text-muted); font-size:0.58rem; font-weight: font-size:0.58rem; font-weight:600;600; width:16.66%; height:10 width:16.66%; height:100%; cursor:pointer; }
-    .nav0%; cursor:pointer; }
-    .nav-item.active { color-item.active { color:var(--accent:var(--accent); }); }
-    .nav
-    .nav-icon { font-size-icon { font-size:1rem:1rem; margin-bottom:; margin-bottom:2px; }2px; }
-    .btn
-    .btn-copy { background:#-copy { background:#1e291e293b; border3b; border:1px solid:1px solid var(--accent); var(--accent); color:var(-- color:var(--accent); fontaccent); font-size:0.-size:0.75rem;75rem; font-weight:7 font-weight:700; padding00; padding:8px :8px 12px;12px; border-radius:8 border-radius:8px; cursor:pointerpx; cursor:pointer; margin-top:; margin-top:10px;10px; width:10 width:100%; text0%; text-align:center; }-align:center; }
-    .dis
-    .disclaimer-box { fontclaimer-box { font-size:0.-size:0.7rem; color7rem; color:#94a:#94a3b8;3b8; line-height:1 line-height:1.45;.45; margin-top:1 margin-top:12px; padding2px; padding:10px:10px; border-left:; border-left:3px solid var3px solid var(--yellow); background(--yellow); background:rgba(2:rgba(245,145,158,158,11,0.1,0.05); border05); border-radius:4px-radius:4px; }
-   ; }
-    .modal { position .modal { position:fixed; top:fixed; top:0; left:0; left:0; right:0; right:0; bottom:0; bottom:0; background:0; background:rgba(0:rgba(0,0,0,0,0,0.8,0.8); backdrop-filter:); backdrop-filter:blur(6pxblur(6px); display:flex;); display:flex; align-items:center; align-items:center; justify-content:center; justify-content:center; padding:20 padding:20px; zpx; z-index:20-index:200; }
-0; }
-    .modal-content    .modal-content { background:var { background:var(--card-bg);(--card-bg); border:1px border:1px solid var(--card solid var(--card-border); border-radius-border); border-radius:16px:16px; padding:2; padding:20px; width0px; width:100:100%; max-width:%; max-width:340px340px; }
-   ; }
-    .modal-title { .modal-title { font-weight:8 font-weight:800; font00; font-size:1rem-size:1rem; margin-bottom:; margin-bottom:8px; color8px; color:#fff; }:#fff; }
-    .modal
-    .modal-desc { font-size-desc { font-size:0.7:0.75rem; color5rem; color:var(--text:var(--text-muted); line-height-muted); line-height:1.4:1.4; margin-bottom:; margin-bottom:14px;14px; }
-    . }
-    .modal-input { widthmodal-input { width:100:100%; background:#0%; background:#080d180d1a; bordera; border:1px solid:1px solid var(--card-border var(--card-border); border-radius:); border-radius:10px;10px; padding:10 padding:10px; color:#px; color:#fff; font-sizefff; font-size:0.8:0.85rem; margin5rem; margin-bottom:14-bottom:14px; outlinepx; outline:none; }
-:none; }
-    .modal-actions    .modal-actions { display:flex; { display:flex; gap:8px gap:8px; justify-content:flex; justify-content:flex-end; }-end; }
-    .btn
-    .btn-secondary { background:#-secondary { background:#1e291e293b; color3b; color:#fff; border:#fff; border:none; padding:none; padding:8px :8px 14px;14px; border-radius:8 border-radius:8px; font-sizepx; font-size:0.7:0.75rem; font5rem; font-weight:60-weight:600; }
-0; }
-    .hidden {    .hidden { display:none !important display:none !important; }
-   ; }
-    .health-score { .health-score { font-size:3 font-size:3rem; font-weightrem; font-weight:900:900; text-align:center; text-align:center; padding:2; padding:20px; border0px; border-radius:16-radius:16px; marginpx; margin-bottom:16-bottom:16px; }
-px; }
-    .health-A    .health-A { background:linear { background:linear-gradient(13-gradient(135deg,rgba5deg,rgba(34,(34,197,197,94,094,0.2),rgba.2),rgba(34,(34,197,197,94,094,0.05));.05)); color:var(-- color:var(--green); border:green); border:2px solid var2px solid var(--green); }(--green); }
-    .health
-    .health-B { background:-B { background:linear-gradient(1linear-gradient(135deg,35deg,rgba(56rgba(56,189,189,248,248,0.2,0.2),rgba(5),rgba(56,186,189,249,248,0.8,0.05));05)); color:var(-- color:var(--accent); border:accent); border:2px solid var2px solid var(--accent); }(--accent); }
-    .health
-    .health-C { background-C { background:linear-gradient(:linear-gradient(135deg135deg,rgba(2,rgba(245,145,158,158,11,0.1,0.2),rgba(2),rgba(245,245,158,158,11,011,0.05));.05)); color:var(-- color:var(--yellow); border:yellow); border:2px solid var2px solid var(--yellow); }(--yellow); }
-    .health
-    .health-D { background:-D { background:linear-gradient(1linear-gradient(135deg,35deg,rgba(23rgba(239,689,68,68,,68,0.2),0.2),rgba(23rgba(239,689,68,68,,68,0.050.05)); color:var)); color:var(--red); border(--red); border:2px solid:2px solid var(--red); var(--red); }
-    . }
-    .metric-bar { heightmetric-bar { height:8px;:8px; background:rgba( background:rgba(255,255,255,255,255,255,0.1);0.1); border-radius:4 border-radius:4px; overflowpx; overflow:hidden; margin-top:hidden; margin-top:4px;:4px; }
-    . }
-    .metric-bar-fill {metric-bar-fill { height:10 height:100%; border-radius0%; border-radius:4px;:4px; transition: transition:width 0.width 0.5s; }5s; }
-    .clinic
-    .clinic-sector { display:flex-sector { display:flex; gap:8; gap:8px; margin-bottompx; margin-bottom:12px:12px; }
-   ; }
-    .sector-btn { .sector-btn { flex:1; flex:1; background:var(-- background:var(--card-bg); bordercard-bg); border:1px solid:1px solid var(--card-border var(--card-border); color:var); color:var(--text-muted);(--text-muted); padding:10 padding:10px; borderpx; border-radius:10-radius:10px; fontpx; font-size:0.-size:0.8rem; font8rem; font-weight:70-weight:700; cursor:pointer0; cursor:pointer; text-align:center; text-align:center; }
-   ; }
-    .sector-btn.active .sector-btn.active { background:rgba { background:rgba(56,(56,189,189,248,248,0.150.15); color); color:var(--accent:var(--accent); border-color:); border-color:var(--accent);var(--accent); }
-    . }
-    .tf-badgetf-badge { margin-top: { margin-top:10px;10px; padding:8px padding:8px 10px 10px; border-radius:; border-radius:10px;10px; font-size:0 font-size:0.7rem;.7rem; font-weight:8 font-weight:800; text00; text-align:center; border-align:center; border:1px solid:1px solid; }
-   ; }
-    .tf-ok { .tf-ok { color:var(-- color:var(--green); border-colorgreen); border-color:rgba(3:rgba(34,194,197,947,94,.4); background,.4); background:rgba(3:rgba(34,194,197,947,94,.08);,.08); }
- }
-    .tf-w    .tf-warn { color:arn { color:var(--yellow);var(--yellow); border-color:rgba border-color:rgba(245(245,158,158,11,.,11,.4); background4); background:rgba(2:rgba(245,145,158,158,11,.081,.08); }
-   ); }
-    /* ===== /* ===== MOTION v MOTION v6.6.0 ===== */
-0 ===== */
-    @media (    @media (prefers-reducedprefers-reduced-motion: reduce)-motion: reduce) { *, { *, *:: *::before, *::before, *::after { animationafter { animation: none !important: none !important; transition: none; transition: none !important; } !important; } }
-    html }
-    html { scroll-beh { scroll-behavior: smoothavior: smooth; }
-   ; }
-    .btn-action, .btn-action, .btn-copy, .btn-copy, .btn-secondary, .btn-secondary, .chip, . .chip, .sector-btnsector-btn, .seg button, .seg button, .nav-item, .nav-item, .btn-key, .btn-key { transition: transform { transition: transform .12s .12s ease, filter . ease, filter .12s ease12s ease; -webkit-user; -webkit-user-select:none-select:none; user-select:none; user-select:none; }
-   ; }
-    .btn-action: .btn-action:active, .btnactive, .btn-copy:active,-copy:active, .btn-secondary: .btn-secondary:active, .chipactive, .chip:active, .:active, .sector-btn:activesector-btn:active, .seg button, .seg button:active, .:active, .btn-key:activebtn-key:active { transform: scale { transform: scale(.94);(.94); filter: brightness( filter: brightness(1.181.18); }
-    .nav-item:); }
-    .nav-item:active { transform:active { transform: scale(.9); scale(.9); }
-    . }
-    .nav-item.active .nav-item.active .nav-icon { animationnav-icon { animation: iconPop .45s cubic: iconPop .45s cubic-bezier(.3-bezier(.34,1.4,1.56,.656,.64,1);4,1); }
-    @ }
-    @keyframes iconPop { 0%keyframes iconPop { 0%{transform:scale(1)} 40%{transform:scale(1)} 40%{transform:scale{transform:scale(1.3(1.35) rotate(-5) rotate(-8deg)} 8deg)} 100%100%{transform:scale{transform:scale(1)}(1)} }
-    . }
-    .btn-action { positionbtn-action { position:relative; overflow:hidden:relative; overflow:hidden; }
-   ; }
-    .btn-action:: .btn-action::after { contentafter { content:''; position:absolute:''; position:absolute; top:0; top:0; left:-6; left:-60%; width:0%; width:40%; height40%; height:100:100%; background:linear%; background:linear-gradient(10-gradient(100deg, transparent0deg, transparent, rgba(2, rgba(255,255,255,255,255,.55,.45),45), transparent); transform: transparent); transform:skewskewX(-20X(-20deg); animationdeg); animation:sheen 2:sheen 2.8s ease.8s ease-in-out infinite;-in-out infinite; pointer-events pointer-events:none; }
-    @key:none; }
-    @keyframes sheframes sheen { 0en { 0%,55%%,55%{left:-{left:-60%}60%} 100 100%{left:%{left:130%130%} }
-   } }
-    @keyframes fade @keyframes fadeUp { from {Up { from { opacity:0; opacity:0; transform:translate transform:translateY(Y(14px)14px) scale(.98 scale(.985); } to5); } to { opacity:1 { opacity:1; transform:none;; transform:none; } }
-    } }
-    #tab-analysis:not #tab-analysis:not(.hidden) .(.hidden) .card, #card, #tab-market:not(.tab-market:not(.hidden) .cardhidden) .card, #tab-f, #tab-fair:not(.hiddenair:not(.hidden) .card,) .card, #tab-clinic #tab-clinic:not(.hidden):not(.hidden) .card, # .card, #tab-watchlist:nottab-watchlist:not(.hidden) .(.hidden) .card, #tabcard, #tab-info:not(.hidden-info:not(.hidden) .card, #resultContainer:not) .card, #resultContainer:not(.hidden) >(.hidden) > .card { animation .card { animation: fadeUp .: fadeUp .5s cubic-be5s cubic-bezier(.22zier(.22,.9,.3,.9,.36,1)6,1) both; }
- both; }
-    .card:nth    .card:nth-child(1){-child(1){animation-delay:.0animation-delay:.03s} .3s} .card:nth-child(card:nth-child(2){animation2){animation-delay:.1s-delay:.1s} .card:nth} .card:nth-child(3){-child(3){animation-delay:.1animation-delay:.17s} .7s} .card:nth-child(card:nth-child(4){animation-delay4){animation-delay:.24s:.24s} .card:nth} .card:nth-child(5){-child(5){animation-delay:.3animation-delay:.31s}
-1s}
-    .metric-grid    .metric-grid .metric-box { .metric-box { animation: fadeUp animation: fadeUp .45s .45s both; }
- both; }
-    .metric-grid    .metric-grid .metric-box:nth .metric-box:nth-child(1){-child(1){animation-delay:.0animation-delay:.04s} .4s} .metric-grid .metricmetric-grid .metric-box:nth-child(-box:nth-child(2){animation-delay2){animation-delay:.08s:.08s} .metric-grid} .metric-grid .metric-box:nth .metric-box:nth-child(3){-child(3){animation-delay:.1animation-delay:.12s} .2s} .metric-grid .metricmetric-grid .metric-box:nth-child(-box:nth-child(4){animation-delay4){animation-delay:.16s:.16s} .metric-grid} .metric-grid .metric-box:nth .metric-box:nth-child(5){-child(5){animation-delay:.2animation-delay:.2s} .metrics} .metric-grid .metric-box-grid .metric-box:nth-child(6:nth-child(6){animation-delay:.){animation-delay:.24s}24s} .metric-grid . .metric-grid .metric-box:nth-childmetric-box:nth-child(7){animation(7){animation-delay:.28-delay:.28s} .metrics} .metric-grid .metric-box-grid .metric-box:nth-child(8:nth-child(8){animation-delay:.){animation-delay:.32s}32s} .metric-grid . .metric-grid .metric-box:nth-childmetric-box:nth-child(9){animation(9){animation-delay:.36-delay:.36s} .metrics} .metric-grid .metric-box-grid .metric-box:nth-child(1:nth-child(10){animation-delay0){animation-delay:.4:.4s} .metrics} .metric-grid .metric-box-grid .metric-box:nth-child(1:nth-child(11){animation-delay1){animation-delay:.44s:.44s} .metric-grid} .metric-grid .metric-box:nth .metric-box:nth-child(12-child(12){animation){animation-delay:.4-delay:.48s}
-8s}
-    .pipeline-step    .pipeline-step.active { animation:.active { animation: stepPulse  stepPulse 1.4s1.4s ease-in-out infinite ease-in-out infinite; }
-   ; }
-    @keyframes step @keyframes stepPulse { Pulse { 0%,100%,100%{opacity0%{opacity:1;}:1;} 50% 50%{opacity:.5{opacity:.55; text-shadow5; text-shadow:0 0:0 0 12px 12px rgba(56 rgba(56,189,189,248,248,.85);},.85);} }
-    . }
-    .pipeline-step.gempipeline-step.gemini.active { animationini.active { animation: stepPulse: stepPulseP 1.P 1.4s ease-in4s ease-in-out infinite; }-out infinite; }
-    @key
-    @keyframes stepPulseframes stepPulseP { 0P { 0%,100%,100%{opacity:%{opacity:1;} 51;} 50%{opacity0%{opacity:.55;:.55; text-shadow:0 text-shadow:0 0 1 0 12px rgba(2px rgba(192,192,132,132,252,.252,.85);} }85);} }
-    #gem
-    #geminiLoading > diviniLoading > div:first-child { display:first-child { display:inline-block; animation:inline-block; animation: sparkle 1: sparkle 1s ease-in-outs ease-in-out infinite; } infinite; }
-    @key
-    @keyframes sparkle { frames sparkle { 0%,100%,100%{transform0%{transform:scale(1:scale(1) rotate(0) rotate(0);} 50);} 50%{transform:%{transform:scale(1.scale(1.3) rotate(3) rotate(14deg);14deg); opacity:.7;} opacity:.7;} }
-    # }
-    #loadingText::afterloadingText::after { content:' … { content:' …'; animation'; animation: blink 1: blink 1s ease-in-outs ease-in-out infinite; } infinite; }
-    @key
-    @keyframes blink { frames blink { 0%,100%,100%{opacity0%{opacity:.15:.15} 50} 50%{opacity:%{opacity:1} }
-1} }
-    #gemini    #geminiOutput:empty {Output:empty { display:block; min display:block; min-height:13-height:130px; border0px; border-radius:14-radius:14px; border:px; border:1px dashed #1px dashed #2a3d2a3d60; background60; background:linear-gradient(:linear-gradient(100deg100deg, rgba(2, rgba(255,255,255,255,255,.55,.04) 04) 40%, rgba40%, rgba(255(255,255,255,255,255,.13),.13) 50%, 50%, rgba(25 rgba(255,255,255,255,255,.5,.04) 04) 60%);60%); background-size:2 background-size:200% 00% 100%;100%; animation:shimmer animation:shimmer 1.3 1.3s linear infinite;s linear infinite; }
-    @ }
-    @keyframes shimmer {keyframes shimmer { from{background-position from{background-position:180:180% 0}% 0} to{ to{background-position:-2background-position:-20% 00% 0} }
-   } }
-    .metric-value.flash .metric-value.flash, .current-price, .current-price.flash, .ticker.flash, .ticker-name.flash-name.flash { animation: flash { animation: flashBlue .8sBlue .8s ease; border-radius ease; border-radius:6px;:6px; }
-    @ }
-    @keyframes flashBluekeyframes flashBlue {  { 0%{ background0%{ background:rgba(5:rgba(56,186,189,249,248,.288,.28); }); } 100 100%{ background:%{ background:transparent; } }transparent; } }
-    .health
-    .health-score { animation:-score { animation: scoreIn .6 scoreIn .6s cubic-beziers cubic-bezier(.34,(.34,1.561.56,.64,,.64,1) both;1) both; }
-    @ }
-    @keyframes scoreInkeyframes scoreIn { from{ { from{ transform:scale(. transform:scale(.55); opacity55); opacity:0; }:0; } to{ transform: to{ transform:scale(1);scale(1); opacity:1; opacity:1; } }
-    } }
-    .metric-bar-fill .metric-bar-fill { animation: grow { animation: growBar .9sBar .9s cubic-bezier(. cubic-bezier(.22,.922,.9,.36,,.36,1) both;1) both; }
-    @ }
-    @keyframes growBarkeyframes growBar { from { width { from { width: : 0; } }0; } }
-    .spark
-    .spark-line { stroke-d-line { stroke-dasharray:1asharray:1200;200; stroke-dashoffset stroke-dashoffset:120:1200; animation0; animation: drawSpark : drawSpark 1.1s1.1s ease forwards; } ease forwards; }
-    @key
-    @keyframes drawSpark {frames drawSpark { to { to { stroke-dashoffset stroke-dashoffset: 0;: 0; } }
-    } }
-    /* ===== ULTIMATE /* ===== ULTIMATE MOTION MOTION v6.2 v6.2 ===== */ ===== */
-    .
-    .tab-anim {tab-anim { animation: tabSlide animation: tabSlide .35s .35s cubic-be cubic-bezier(.22zier(.22,.9,.3,.9,.36,1)6,1) both; }
- both; }
-    @keyframes    @keyframes tabSlide { from tabSlide { from { opacity:0 { opacity:0; transform:translate; transform:translateX(20X(20px); } topx); } to { opacity:1 { opacity:1; transform:none;; transform:none; } }
-    } }
-    .ticker-wrap { .ticker-wrap { position:fixed position:fixed; top:0; top:0; left:0; left:0; right:0; right:0; height:2; height:26px; background6px; background:linear-gradient(:linear-gradient(90deg,#90deg,#080d080d1a,#1a,#121a121a2d,#2d,#080d080d1a);1a); border-bottom:1 border-bottom:1px solid var(--px solid var(--card-border); overflowcard-border); overflow:hidden;:hidden; z-index:6 z-index:60; display:none0; display:none; font-size:; font-size:0.720.72rem; font-weightrem; font-weight:700:700; }
-   ; }
-    .ticker-wrap.active .ticker-wrap.active { display:block; { display:block; }
-    body }
-    body.has-ticker header.has-ticker header { margin { margin-top:-top:26px;26px; }
-    . }
-    .ticker-trackticker-track { display:inline-flex { display:inline-flex; white-space:; white-space:nowrap; gapnowrap; gap:32px:32px; padding-left:; padding-left:100%;100%; animation: ticker animation: tickerScroll 60Scroll 60s linear infinite;s linear infinite; }
-    @ }
-    @keyframes tickerScrollkeyframes tickerScroll { to { transform { to { transform: translateX(-: translateX(-100%100%); } }
-); } }
-    .ticker-item    .ticker-item { display:inline-flex { display:inline-flex; align-items:center; align-items:center; gap:4; gap:4px; }
-px; }
-    .ticker-code    .ticker-code { color:# { color:#fff; font-weightfff; font-weight:800:800; }
-   ; }
-    .ticker-price { .ticker-price { color:var(-- color:var(--text-muted); }text-muted); }
-    .ticker
-    .ticker-up { color:-up { color:var(--green);var(--green); } . } .ticker-down { colorticker-down { color:var(--red:var(--red); }
-   ); }
-    .scroll-prog .scroll-prog { position:fixed { position:fixed; top:0; top:0; left:0; left:0; height:2; height:2px; width:px; width:0%; background0%; background:linear-gradient(:linear-gradient(90deg,#90deg,#38bdf38bdf8,#c8,#c084fc084fc,#f59,#f59e0b);e0b); z-index:7 z-index:70; transition0; transition:width:width .1 .1s ease-out;s ease-out; box-shadow:0 box-shadow:0 0 8 0 8px rgba(5px rgba(56,186,189,249,248,0.8,0.6); }6); }
-    body.has
-    body.has-ticker-ticker .scroll-prog .scroll-prog { top:2 { top:26px; }6px; }
-    .conf
-    .confetti-wrap { positionetti-wrap { position:fixed; top:fixed; top:0; left:0; left:0; right:0; right:0; bottom:0; bottom:0; pointer:0; pointer-events:none; z-events:none; z-index:15-index:150; overflow0; overflow:hidden;:hidden; }
-    . }
-    .confetti-particleconfetti-particle { position:absolute; { position:absolute; width:8px width:8px; height:1; height:14px; animation4px; animation: confettiFall: confettiFall 3s ease 3s ease-in forwards; }-in forwards; }
-    @
-    @keyframes confettikeyframes confettiFall { Fall { 0% { transform0% { transform: translateY(-2: translateY(-20vh) rotate0vh) rotate(0deg(0deg); opacity); opacity:1; }:1; } 100 100% { transform:% { transform: translateY( translateY(110vh110vh) rotate(7) rotate(72020deg); opacity:deg); opacity:0; } }0; } }
-    .card
-    .card-3d {-3d { transform-style:preserve transform-style:preserve-3-3d; transition:d; transition:transform .transform .2s ease-out2s ease-out; }
- ; }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>AI Trading Agent IHSG</title>
+  <script src="https://unpkg.com/lightweight-charts@4.1.3/dist/lightweight-charts.standalone.production.js"></script>
+  <style>
+    :root { --bg-dark:#080d1a; --card-bg:#121a2d; --card-border:#1f2c47; --text-main:#f8fafc; --text-muted:#8ca0ba; --accent:#38bdf8; --green:#22c55e; --red:#ef4444; --yellow:#f59e0b; --gemini-purple:#a855f7; --qwen-blue:#6366f1; --safe-bottom:env(safe-area-inset-bottom,20px); }
+    * { box-sizing:border-box; margin:0; padding:0; font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,sans-serif; -webkit-tap-highlight-color:transparent; }
+    body { background-color:var(--bg-dark); color:var(--text-main); padding-bottom:calc(75px + var(--safe-bottom)); min-height:100vh; display:flex; flex-direction:column; }
+    header { padding:env(safe-area-inset-top,20px) 16px 12px; background:rgba(8,13,26,0.92); backdrop-filter:blur(14px); position:sticky; top:0; z-index:50; border-bottom:1px solid var(--card-border); display:flex; justify-content:space-between; align-items:center; }
+    .app-title { font-size:1.05rem; font-weight:800; background:linear-gradient(90deg,#38bdf8,#c084fc); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+    .btn-key { font-size:0.7rem; background:rgba(168,85,247,0.15); color:#c084fc; border:1px solid rgba(168,85,247,0.35); padding:5px 10px; border-radius:12px; font-weight:700; cursor:pointer; }
+    .container { padding:16px; flex:1; }
+    .pipeline-tracker { display:flex; justify-content:space-between; align-items:center; background:rgba(18,26,45,0.7); border:1px solid var(--card-border); border-radius:12px; padding:8px 12px; margin-bottom:10px; font-size:0.65rem; font-weight:700; color:var(--text-muted); }
+    .pipeline-step.active { color:var(--accent); }
+    .pipeline-step.gemini { color:#c084fc; font-weight:800; }
+    .engine-row { display:flex; align-items:center; gap:8px; margin-bottom:12px; font-size:0.68rem; color:var(--text-muted); font-weight:700; }
+    .seg { display:flex; border:1px solid var(--card-border); border-radius:10px; overflow:hidden; }
+    .seg button { background:var(--card-bg); color:var(--text-muted); border:none; padding:6px 12px; font-size:0.68rem; font-weight:800; cursor:pointer; }
+    .seg button.on-gemini { background:rgba(168,85,247,0.25); color:#c084fc; }
+    .seg button.on-qwen { background:rgba(99,102,241,0.3); color:#a5b4fc; }
+    .search-box { display:flex; gap:8px; margin-bottom:12px; }
+    input[type="text"] { flex:1; background:var(--card-bg); border:1px solid var(--card-border); padding:12px 14px; border-radius:12px; color:#fff; font-size:1rem; text-transform:uppercase; font-weight:600; outline:none; }
+    input[type="text"]:focus { border-color:var(--accent); }
+    .btn-action { background:linear-gradient(135deg,var(--accent),#818cf8); color:#080d1a; border:none; border-radius:12px; padding:0 16px; font-weight:800; cursor:pointer; }
+    .quick-chips { display:flex; gap:6px; overflow-x:auto; padding-bottom:8px; margin-bottom:14px; -webkit-overflow-scrolling:touch; }
+    .quick-chips::-webkit-scrollbar { display:none; }
+    .chip { background:var(--card-bg); border:1px solid var(--card-border); color:var(--text-muted); padding:5px 12px; border-radius:14px; font-size:0.75rem; font-weight:600; white-space:nowrap; cursor:pointer; }
+    .chip:active { background:var(--accent); color:#080d1a; }
+    .card { background:var(--card-bg); border:1px solid var(--card-border); border-radius:16px; padding:16px; margin-bottom:14px; }
+    .card-title { font-size:0.78rem; text-transform:uppercase; color:var(--text-muted); letter-spacing:0.6px; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center; font-weight:700; }
+    .agent-pill { font-size:0.62rem; padding:3px 8px; border-radius:6px; font-weight:800; text-transform:uppercase; }
+    .agent-pill.tech { background:rgba(56,189,248,0.15); color:var(--accent); border:1px solid rgba(56,189,248,0.3); }
+    .agent-pill.fund { background:rgba(245,158,11,0.15); color:var(--yellow); border:1px solid rgba(245,158,11,0.3); }
+    .agent-pill.risk { background:rgba(239,68,68,0.15); color:var(--red); border:1px solid rgba(239,68,68,0.3); }
+    .agent-pill.master { background:rgba(192,132,252,0.2); color:#c084fc; border:1px solid rgba(192,132,252,0.4); }
+    .price-row { display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:12px; }
+    .ticker-name { font-size:1.45rem; font-weight:800; color:#fff; }
+    .current-price { font-size:1.45rem; font-weight:800; text-align:right; }
+    .price-change { font-size:0.85rem; font-weight:600; text-align:right; }
+    .green { color:var(--green); } .red { color:var(--red); } .yellow { color:var(--yellow); }
+    .metric-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:8px; }
+    .metric-box { background:rgba(8,13,26,0.45); padding:9px; border-radius:10px; border:1px solid rgba(255,255,255,0.05); }
+    .metric-label { font-size:0.68rem; color:var(--text-muted); margin-bottom:2px; }
+    .metric-value { font-size:0.86rem; font-weight:700; color:#fff; word-break:break-word; }
+    .fv-input { width:100%; background:rgba(8,13,26,0.6); border:1px solid var(--card-border); border-radius:8px; padding:8px; color:#fff; font-size:0.85rem; font-weight:700; outline:none; }
+    .fv-input:focus { border-color:var(--accent); }
+    .src-note { font-size:0.62rem; color:#64748b; margin-top:10px; line-height:1.4; }
+    .agent-chips { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:10px; }
+    .achip { font-size:0.62rem; font-weight:800; padding:4px 8px; border-radius:8px; border:1px solid var(--card-border); color:var(--text-muted); background:rgba(8,13,26,0.45); }
+    .achip.run { color:var(--yellow); border-color:rgba(245,158,11,0.4); }
+    .achip.ok { color:var(--green); border-color:rgba(34,197,94,0.4); }
+    .achip.fail { color:var(--red); border-color:rgba(239,68,68,0.4); }
+    .report-card { background:#090f1d; border:1px solid #233352; border-radius:14px; padding:14px; margin-top:10px; font-size:0.82rem; line-height:1.55; color:#cbd5e1; }
+    .formatted-kv { background:rgba(0,0,0,0.35); border:1px dashed #2a3d60; border-radius:8px; padding:12px; margin:10px 0; font-family:ui-monospace,Menlo,Consolas,monospace; font-size:0.8rem; line-height:1.45; color:#e2e8f0; white-space:pre-wrap; }
+    details.agent-detail { margin-top:8px; border:1px solid var(--card-border); border-radius:10px; padding:8px 10px; background:rgba(8,13,26,0.4); }
+    details.agent-detail summary { font-size:0.72rem; font-weight:800; color:var(--accent); cursor:pointer; }
+    details.agent-detail .formatted-kv { margin:8px 0 0; font-size:0.72rem; }
+    .mkt-row { display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid var(--card-border); font-size:0.8rem; }
+    .mkt-row:last-child { border-bottom:none; }
+    .bottom-nav { position:fixed; bottom:0; left:0; right:0; height:calc(54px + var(--safe-bottom)); padding-bottom:var(--safe-bottom); background:rgba(8,13,26,0.95); backdrop-filter:blur(14px); border-top:1px solid var(--card-border); display:flex; justify-content:space-around; align-items:center; z-index:100; }
+    .nav-item { display:flex; flex-direction:column; align-items:center; justify-content:center; color:var(--text-muted); font-size:0.58rem; font-weight:600; width:16.66%; height:100%; cursor:pointer; }
+    .nav-item.active { color:var(--accent); }
+    .nav-icon { font-size:1rem; margin-bottom:2px; }
+    .btn-copy { background:#1e293b; border:1px solid var(--accent); color:var(--accent); font-size:0.75rem; font-weight:700; padding:8px 12px; border-radius:8px; cursor:pointer; margin-top:10px; width:100%; text-align:center; }
+    .disclaimer-box { font-size:0.7rem; color:#94a3b8; line-height:1.45; margin-top:12px; padding:10px; border-left:3px solid var(--yellow); background:rgba(245,158,11,0.05); border-radius:4px; }
+    .modal { position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.8); backdrop-filter:blur(6px); display:flex; align-items:center; justify-content:center; padding:20px; z-index:200; }
+    .modal-content { background:var(--card-bg); border:1px solid var(--card-border); border-radius:16px; padding:20px; width:100%; max-width:340px; }
+    .modal-title { font-weight:800; font-size:1rem; margin-bottom:8px; color:#fff; }
+    .modal-desc { font-size:0.75rem; color:var(--text-muted); line-height:1.4; margin-bottom:14px; }
+    .modal-input { width:100%; background:#080d1a; border:1px solid var(--card-border); border-radius:10px; padding:10px; color:#fff; font-size:0.85rem; margin-bottom:14px; outline:none; }
+    .modal-actions { display:flex; gap:8px; justify-content:flex-end; }
+    .btn-secondary { background:#1e293b; color:#fff; border:none; padding:8px 14px; border-radius:8px; font-size:0.75rem; font-weight:600; }
+    .hidden { display:none !important; }
+    .health-score { font-size:3rem; font-weight:900; text-align:center; padding:20px; border-radius:16px; margin-bottom:16px; }
+    .health-A { background:linear-gradient(135deg,rgba(34,197,94,0.2),rgba(34,197,94,0.05)); color:var(--green); border:2px solid var(--green); }
+    .health-B { background:linear-gradient(135deg,rgba(56,189,248,0.2),rgba(56,189,248,0.05)); color:var(--accent); border:2px solid var(--accent); }
+    .health-C { background:linear-gradient(135deg,rgba(245,158,11,0.2),rgba(245,158,11,0.05)); color:var(--yellow); border:2px solid var(--yellow); }
+    .health-D { background:linear-gradient(135deg,rgba(239,68,68,0.2),rgba(239,68,68,0.05)); color:var(--red); border:2px solid var(--red); }
+    .metric-bar { height:8px; background:rgba(255,255,255,0.1); border-radius:4px; overflow:hidden; margin-top:4px; }
+    .metric-bar-fill { height:100%; border-radius:4px; transition:width 0.5s; }
+    .clinic-sector { display:flex; gap:8px; margin-bottom:12px; }
+    .sector-btn { flex:1; background:var(--card-bg); border:1px solid var(--card-border); color:var(--text-muted); padding:10px; border-radius:10px; font-size:0.8rem; font-weight:700; cursor:pointer; text-align:center; }
+    .sector-btn.active { background:rgba(56,189,248,0.15); color:var(--accent); border-color:var(--accent); }
+    .tf-badge { margin-top:10px; padding:8px 10px; border-radius:10px; font-size:0.7rem; font-weight:800; text-align:center; border:1px solid; }
+    .tf-ok { color:var(--green); border-color:rgba(34,197,94,.4); background:rgba(34,197,94,.08); }
+    .tf-warn { color:var(--yellow); border-color:rgba(245,158,11,.4); background:rgba(245,158,11,.08); }
+    /* ===== MOTION v6.0 ===== */
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+    html { scroll-behavior: smooth; }
+    .btn-action, .btn-copy, .btn-secondary, .chip, .sector-btn, .seg button, .nav-item, .btn-key { transition: transform .12s ease, filter .12s ease; -webkit-user-select:none; user-select:none; }
+    .btn-action:active, .btn-copy:active, .btn-secondary:active, .chip:active, .sector-btn:active, .seg button:active, .btn-key:active { transform: scale(.94); filter: brightness(1.18); }
+    .nav-item:active { transform: scale(.9); }
+    .nav-item.active .nav-icon { animation: iconPop .45s cubic-bezier(.34,1.56,.64,1); }
+    @keyframes iconPop { 0%{transform:scale(1)} 40%{transform:scale(1.35) rotate(-8deg)} 100%{transform:scale(1)} }
+    .btn-action { position:relative; overflow:hidden; }
+    .btn-action::after { content:''; position:absolute; top:0; left:-60%; width:40%; height:100%; background:linear-gradient(100deg, transparent, rgba(255,255,255,.45), transparent); transform:skewX(-20deg); animation:sheen 2.8s ease-in-out infinite; pointer-events:none; }
+    @keyframes sheen { 0%,55%{left:-60%} 100%{left:130%} }
+    @keyframes fadeUp { from { opacity:0; transform:translateY(14px) scale(.985); } to { opacity:1; transform:none; } }
+    #tab-analysis:not(.hidden) .card, #tab-market:not(.hidden) .card, #tab-fair:not(.hidden) .card, #tab-clinic:not(.hidden) .card, #tab-watchlist:not(.hidden) .card, #tab-info:not(.hidden) .card, #resultContainer:not(.hidden) > .card { animation: fadeUp .5s cubic-bezier(.22,.9,.36,1) both; }
+    .card:nth-child(1){animation-delay:.03s} .card:nth-child(2){animation-delay:.1s} .card:nth-child(3){animation-delay:.17s} .card:nth-child(4){animation-delay:.24s} .card:nth-child(5){animation-delay:.31s}
+    .metric-grid .metric-box { animation: fadeUp .45s both; }
+    .metric-grid .metric-box:nth-child(1){animation-delay:.04s} .metric-grid .metric-box:nth-child(2){animation-delay:.08s} .metric-grid .metric-box:nth-child(3){animation-delay:.12s} .metric-grid .metric-box:nth-child(4){animation-delay:.16s} .metric-grid .metric-box:nth-child(5){animation-delay:.2s} .metric-grid .metric-box:nth-child(6){animation-delay:.24s} .metric-grid .metric-box:nth-child(7){animation-delay:.28s} .metric-grid .metric-box:nth-child(8){animation-delay:.32s} .metric-grid .metric-box:nth-child(9){animation-delay:.36s} .metric-grid .metric-box:nth-child(10){animation-delay:.4s} .metric-grid .metric-box:nth-child(11){animation-delay:.44s} .metric-grid .metric-box:nth-child(12){animation-delay:.48s}
+    .pipeline-step.active { animation: stepPulse 1.4s ease-in-out infinite; }
+    @keyframes stepPulse { 0%,100%{opacity:1;} 50%{opacity:.55; text-shadow:0 0 12px rgba(56,189,248,.85);} }
+    .pipeline-step.gemini.active { animation: stepPulseP 1.4s ease-in-out infinite; }
+    @keyframes stepPulseP { 0%,100%{opacity:1;} 50%{opacity:.55; text-shadow:0 0 12px rgba(192,132,252,.85);} }
+    #geminiLoading > div:first-child { display:inline-block; animation: sparkle 1s ease-in-out infinite; }
+    @keyframes sparkle { 0%,100%{transform:scale(1) rotate(0);} 50%{transform:scale(1.3) rotate(14deg); opacity:.7;} }
+    #loadingText::after { content:' …'; animation: blink 1s ease-in-out infinite; }
+    @keyframes blink { 0%,100%{opacity:.15} 50%{opacity:1} }
+    #geminiOutput:empty { display:block; min-height:130px; border-radius:14px; border:1px dashed #2a3d60; background:linear-gradient(100deg, rgba(255,255,255,.04) 40%, rgba(255,255,255,.13) 50%, rgba(255,255,255,.04) 60%); background-size:200% 100%; animation:shimmer 1.3s linear infinite; }
+    @keyframes shimmer { from{background-position:180% 0} to{background-position:-20% 0} }
+    .metric-value.flash, .current-price.flash, .ticker-name.flash { animation: flashBlue .8s ease; border-radius:6px; }
+    @keyframes flashBlue { 0%{ background:rgba(56,189,248,.28); } 100%{ background:transparent; } }
+    .health-score { animation: scoreIn .6s cubic-bezier(.34,1.56,.64,1) both; }
+    @keyframes scoreIn { from{ transform:scale(.55); opacity:0; } to{ transform:scale(1); opacity:1; } }
+    .metric-bar-fill { animation: growBar .9s cubic-bezier(.22,.9,.36,1) both; }
+    @keyframes growBar { from { width: 0; } }
+    .spark-line { stroke-dasharray:1200; stroke-dashoffset:1200; animation: drawSpark 1.1s ease forwards; }
+    @keyframes drawSpark { to { stroke-dashoffset: 0; } }
+    /* ===== ULTIMATE MOTION v6.2 ===== */
+    .tab-anim { animation: tabSlide .35s cubic-bezier(.22,.9,.36,1) both; }
+    @keyframes tabSlide { from { opacity:0; transform:translateX(20px); } to { opacity:1; transform:none; } }
+    .ticker-wrap { position:fixed; top:0; left:0; right:0; height:26px; background:linear-gradient(90deg,#080d1a,#121a2d,#080d1a); border-bottom:1px solid var(--card-border); overflow:hidden; z-index:60; display:none; font-size:0.72rem; font-weight:700; }
+    .ticker-wrap.active { display:block; }
+    body.has-ticker header { margin-top:26px; }
+    .ticker-track { display:inline-flex; white-space:nowrap; gap:32px; padding-left:100%; animation: tickerScroll 60s linear infinite; }
+    @keyframes tickerScroll { to { transform: translateX(-100%); } }
+    .ticker-item { display:inline-flex; align-items:center; gap:4px; }
+    .ticker-code { color:#fff; font-weight:800; }
+    .ticker-price { color:var(--text-muted); }
+    .ticker-up { color:var(--green); } .ticker-down { color:var(--red); }
+    .scroll-prog { position:fixed; top:0; left:0; height:2px; width:0%; background:linear-gradient(90deg,#38bdf8,#c084fc,#f59e0b); z-index:70; transition:width .1s ease-out; box-shadow:0 0 8px rgba(56,189,248,0.6); }
+    body.has-ticker .scroll-prog { top:26px; }
+    .confetti-wrap { position:fixed; top:0; left:0; right:0; bottom:0; pointer-events:none; z-index:150; overflow:hidden; }
+    .confetti-particle { position:absolute; width:8px; height:14px; animation: confettiFall 3s ease-in forwards; }
+    @keyframes confettiFall { 0% { transform: translateY(-20vh) rotate(0deg); opacity:1; } 100% { transform: translateY(110vh) rotate(720deg); opacity:0; } }
+    .card-3d { transform-style:preserve-3d; transition:transform .2s ease-out; }
   </style>
- </style>
-</head>
 </head>
 <body>
 
-<body>
-
-  <div id  <div id="apiKeyModal"="apiKeyModal" class="modal hidden class="modal hidden">
-    ">
-    <div class="modal<div class="modal-content">
-     -content">
-      <div class=" <div class="modal-title">🔑 Google AImodal-title">🔑 Google AI Studio Key</div Studio Key</div>
-      >
-      <div class="modal<div class="modal-desc">Key bawa-desc">Key bawaan sudah tertanaman sudah tertanam di file (mes di file (mesin Gemini). Kolin Gemini). Kolom ini hanyaom ini hanya untuk  untuk <strong>mengganti<strong>mengganti</strong> key</strong> key (opsional). (opsional). Kosongkan lalu Kosongkan lalu Simpan untuk kembali Simpan untuk kembali ke key ke key bawaan. bawaan.</div>
-     </div>
-      <input type=" <input type="text" id="text" id="apiKeyInput" classapiKeyInput" class="modal-input"="modal-input" placeholder="Paste placeholder="Paste key (AIza key (AIza... / AQ...)... / AQ...) disini">
-      disini">
-      <div class=" <div class="modal-actions">
-modal-actions">
-        <button class        <button class="btn-secondary"="btn-secondary" onclick="toggleKey onclick="toggleKeyModal(false)">BModal(false)">Batal</button>atal</button>
-        <button
-        <button class="btn-action class="btn-action" onclick="save" onclick="saveApiKey()">SimpanApiKey()">Simpan Key</button> Key</button>
-      </div
+  <div id="apiKeyModal" class="modal hidden">
+    <div class="modal-content">
+      <div class="modal-title">🔑 Google AI Studio Key</div>
+      <div class="modal-desc">Key bawaan sudah tertanam di file (mesin Gemini). Kolom ini hanya untuk <strong>mengganti</strong> key (opsional). Kosongkan lalu Simpan untuk kembali ke key bawaan.</div>
+      <input type="text" id="apiKeyInput" class="modal-input" placeholder="Paste key (AIza... / AQ...) disini">
+      <div class="modal-actions">
+        <button class="btn-secondary" onclick="toggleKeyModal(false)">Batal</button>
+        <button class="btn-action" onclick="saveApiKey()">Simpan Key</button>
       </div>
-    >
     </div>
- </div>
   </div>
 
- </div>
-
-    <header>
-   <header>
+  <header>
     <div>
- <div>
-      <div class      <div class="app-title">="app-title">AI Trading Agent IHAI Trading Agent IHSG</div>SG</div>
-      <div
-      <div style="font-size style="font-size: 0.: 0.62rem;62rem; color: var(-- color: var(--text-muted);">text-muted);">Multi-Agent • BEMulti-Agent • BEI • <strongI • <strong>Build v6>Build v6.2</strong.2</strong></div></div>
-    >
+      <div class="app-title">AI Trading Agent IHSG</div>
+      <div style="font-size: 0.62rem; color: var(--text-muted);">Multi-Agent • BEI • <strong>Build v6.2</strong></div>
     </div>
-   </div>
-    <button class=" <button class="btn-key" idbtn-key" id="keyStatusBtn="keyStatusBtn" onclick="toggle" onclick="toggleKeyModal(true)">KeyModal(true)">🔑 Key</button🔑 Key</button>
- >
+    <button class="btn-key" id="keyStatusBtn" onclick="toggleKeyModal(true)">🔑 Key</button>
   </header>
 
- </header>
+  <div class="container">
+    <div class="pipeline-tracker">
+      <div class="pipeline-step" id="step-data">1. Data BEI</div>
+      <div style="color:#475569;">➔</div>
+      <div class="pipeline-step" id="step-tech">2. Indicators</div>
+      <div style="color:#475569;">➔</div>
+      <div class="pipeline-step gemini" id="step-gemini">3. AI Agents</div>
+    </div>
 
-  <div class  <div class="container">
-="container">
-    <div class    <div class="pipeline-tracker="pipeline-tracker">
-      ">
-      <div class="pipeline<div class="pipeline-step" id="-step" id="
+    <div id="tab-analysis">
+      <div class="engine-row">
+        <span>Mesin AI:</span>
+        <div class="seg">
+          <button id="engGemini" onclick="setEngine('gemini')">✨ Gemini</button>
+          <button id="engQwen" onclick="setEngine('qwen')">🤖 Qwen</button>
+        </div>
+        <span id="engineNote" style="font-weight:600;"></span>
+      </div>
+      <div class="search-box">
+        <input type="text" id="stockInput" placeholder="KODE SAHAM (ADMR, BUMI, NCKL)" maxlength="6">
+        <button class="btn-action" onclick="runPipeline()">Proses</button>
+      </div>
+      <div class="quick-chips">
+        <div class="chip" onclick="quickSelect('ADMR')">ADMR</div>
+        <div class="chip" onclick="quickSelect('BUMI')">BUMI</div>
+        <div class="chip" onclick="quickSelect('NCKL')">NCKL</div>
+        <div class="chip" onclick="quickSelect('RGAS')">RGAS</div>
+        <div class="chip" onclick="quickSelect('MINA')">MINA</div>
+        <div class="chip" onclick="quickSelect('PWON')">PWON</div>
+        <div class="chip" onclick="quickSelect('ULTJ')">ULTJ</div>
+      </div>
+      <div id="resultContainer" class="hidden">
+        <div class="card">
+          <div class="price-row">
+            <div>
+              <div class="ticker-name" id="displayTicker">-.JK</div>
+              <div style="font-size: 0.68rem; color: var(--text-muted);" id="lastUpdated">Diperbarui: -</div>
+            </div>
+            <div>
+              <div class="current-price" id="displayPrice">Rp 0</div>
+              <div class="price-change" id="displayChange">+0.00%</div>
+            </div>
+          </div>
+          <div class="metric-grid">
+            <div class="metric-box"><div class="metric-label">Trend (algoritmik)</div><div class="metric-value" id="valTrend">-</div></div>
+            <div class="metric-box"><div class="metric-label">Volume</div><div class="metric-value" id="valVolume">-</div></div>
+          </div>
+          <div id="tfBadge" class="tf-badge tf-warn hidden"></div>
+          <div id="sparkBox" style="margin-top:10px;"></div>
+          <button class="btn-copy" onclick="addToWatchlistCurrent()">⭐ Simpan ke Watchlist</button>
+          <div class="src-note">Sumber: Yahoo Finance chart BEI via proxy (Apps Script pribadi prioritas utama) • harga & volume riil, bukan simulasi.</div>
+        </div>
+        <div class="card" id="candleCard" style="display:none;">
+          <div class="card-title"><span>Grafik Candlestick Harian</span><span class="agent-pill tech">Lightweight Charts</span></div>
+          <div id="candleChart" style="height:240px;"></div>
+          <div class="src-note">Garis putus-putus: Support (hijau) & Resistance (merah). Geser/pinch untuk zoom.</div>
+        </div>
+        <div class="card">
+          <div class="card-title"><span>Indikator Teknikal</span><span class="agent-pill tech">Dihitung Perangkat</span></div>
+          <div class="metric-grid">
+            <div class="metric-box"><div class="metric-label">RSI 14</div><div class="metric-value" id="valRsi">-</div></div>
+            <div class="metric-box"><div class="metric-label">MACD</div><div class="metric-value" id="valMacd">-</div></div>
+            <div class="metric-box"><div class="metric-label">MA20 / MA50</div><div class="metric-value" id="valMaShort">-</div></div>
+            <div class="metric-box"><div class="metric-label">MA200</div><div class="metric-value" id="valMa200">-</div></div>
+            <div class="metric-box"><div class="metric-label">Support</div><div class="metric-value green" id="valSupport">-</div></div>
+            <div class="metric-box"><div class="metric-label">Resistance</div><div class="metric-value red" id="valResistance">-</div></div>
+            <div class="metric-box"><div class="metric-label">Breakout / Breakdown</div><div class="metric-value" id="valBreakout">-</div></div>
+            <div class="metric-box"><div class="metric-label">Momentum (RSI status)</div><div class="metric-value" id="valMomentum">-</div></div>
+          </div>
+          <div class="src-note">Sumber: perhitungan lokal di perangkat Anda (SMA/EMA/RSI/ATR) atas data historis BEI 1 tahun.</div>
+        </div>
+        <div class="card">
+          <div class="card-title"><span>Fundamental Emiten</span><span class="agent-pill fund" id="fundPill">Menunggu data</span></div>
+          <div class="metric-grid">
+            <div class="metric-box"><div class="metric-label">Revenue</div><div class="metric-value" id="fRevenue">-</div></div>
+            <div class="metric-box"><div class="metric-label">Pertumbuhan Revenue</div><div class="metric-value" id="fRevGrowth">-</div></div>
+            <div class="metric-box"><div class="metric-label">Net Profit</div><div class="metric-value" id="fNetProfit">-</div></div>
+            <div class="metric-box"><div class="metric-label">Pertumbuhan Laba</div><div class="metric-value" id="fEarnGrowth">-</div></div>
+            <div class="metric-box"><div class="metric-label">EPS</div><div class="metric-value" id="fEps">-</div></div>
+            <div class="metric-box"><div class="metric-label">ROE</div><div class="metric-value" id="fRoe">-</div></div>
+            <div class="metric-box"><div class="metric-label">DER</div><div class="metric-value" id="fDer">-</div></div>
+            <div class="metric-box"><div class="metric-label">PER</div><div class="metric-value" id="fPer">-</div></div>
+            <div class="metric-box"><div class="metric-label">PBV</div><div class="metric-value" id="fPbv">-</div></div>
+            <div class="metric-box"><div class="metric-label">Market Cap</div><div class="metric-value" id="fMcap">-</div></div>
+            <div class="metric-box"><div class="metric-label">Arus Kas Bebas</div><div class="metric-value" id="fFcf">-</div></div>
+            <div class="metric-box"><div class="metric-label">Dividend Yield</div><div class="metric-value" id="fDiv">-</div></div>
+          </div>
+          <div class="src-note">Merge per-field: Yahoo crumb dulu, field kosong diisi TradingView scanner Indonesia. Field yang tetap kosong = kedua sumber memang tidak menyimpannya → "Data tidak tersedia" (jujur, bukan bug).</div>
+        </div>
+        <div class="card">
+          <div class="card-title"><span>Rencana Risiko (Algoritmik)</span><span class="agent-pill risk">Bukan Prediksi</span></div>
+          <div class="metric-grid">
+            <div class="metric-box"><div class="metric-label">Entry Area</div><div class="metric-value" id="rEntry">-</div></div>
+            <div class="metric-box"><div class="metric-label">Stop Loss</div><div class="metric-value red" id="rSl">-</div></div>
+            <div class="metric-box"><div class="metric-label">Target 1</div><div class="metric-value green" id="rTp1">-</div></div>
+            <div class="metric-box"><div class="metric-label">Target 2</div><div class="metric-value green" id="rTp2">-</div></div>
+            <div class="metric-box"><div class="metric-label">Risk/Reward</div><div class="metric-value" id="rRr">-</div></div>
+            <div class="metric-box"><div class="metric-label">Risiko per Trade</div><div class="metric-value" id="rPct">-</div></div>
+            <div class="metric-box"><div class="metric-label">Volatilitas (ATR%)</div><div class="metric-value" id="rAtr">-</div></div>
+            <div class="metric-box"><div class="metric-label">Sinyal Reversal</div><div class="metric-value" id="rReversal">-</div></div>
+          </div>
+          <div class="src-note">Sumber: perhitungan perangkat dari ATR & Support/Resistance riil. Angka manajemen risiko, BUKAN jaminan arah harga.</div>
+        </div>
+        <div class="card">
+          <div class="card-title"><span>Laporan Multi-Agent</span><span class="agent-pill master" id="masterPill">Master Agent</span></div>
+          <div class="agent-chips">
+            <span class="achip" id="agTech">Technical Agent</span>
+            <span class="achip" id="agFund">Fundamental Agent</span>
+            <span class="achip" id="agRisk">Risk Agent</span>
+            <span class="achip" id="agMaster">Master Agent</span>
+          </div>
+          <div id="geminiLoading" class="hidden" style="text-align:center; padding: 18px 0; color: #c084fc;">
+            <div style="font-size: 1.6rem; margin-bottom: 6px;">✨</div>
+            <div style="font-size: 0.78rem; font-weight: 700;" id="loadingText">Agent sedang menganalisis...</div>
+          </div>
+          <div id="geminiOutput" class="report-card"></div>
+          <details class="agent-detail"><summary>🔍 Hasil Technical Agent (lokal)</summary><div class="formatted-kv" id="outTech">-</div></details>
+          <details class="agent-detail"><summary>📒 Hasil Fundamental Agent (lokal)</summary><div class="formatted-kv" id="outFund">-</div></details>
+          <details class="agent-detail"><summary>🛡️ Hasil Risk Agent (lokal)</summary><div class="formatted-kv" id="outRisk">-</div></details>
+          <button class="btn-copy" onclick="copyReport()">📋 Salin Laporan Master</button>
+        </div>
+      </div>
+      <div id="emptyState" style="text-align:center; padding:40px 16px; color:var(--text-muted);">
+        <div style="font-size:2.8rem; margin-bottom:10px;">🤖</div>
+        <div style="font-weight:700; color:#fff; margin-bottom:4px;">Gemini AI Trading Agent</div>
+        <div style="font-size:0.78rem; line-height:1.5;">Masukkan kode saham BEI di atas. Pipeline akan menghitung indikator riil lalu meminta Gemini menyusun laporan terstruktur.</div>
+      </div>
+    </div>
+
+    <div id="tab-market" class="hidden">
+      <div class="card">
+        <div class="card-title"><span>🎯 Screener Peluang Hari Ini</span><span class="agent-pill fund">Value Scan</span></div>
+        <button class="btn-copy" style="margin-top:0;" id="scrBtn" onclick="runScreener()">🎯 Scan ±32 Saham Liquid</button>
+        <div id="scrNote" style="font-size:0.7rem;color:var(--text-muted);margin-top:8px;">Skor = MOS Graham + PER≤10 + PBV≤1,5 + ROE≥15% + DER≤100% (satu scan TradingView, cache 10 menit). Ketuk baris → kirim ke Klinik.</div>
+        <div id="scrResult" class="hidden" style="margin-top:10px;"></div>
+      </div>
+      <div class="card">
+        <div class="card-title"><span>Indeks IHSG (^JKSE)</span><span class="agent-pill tech">Live</span></div>
+        <div class="price-row" style="margin-bottom:4px;">
+          <div><div class="ticker-name" id="mktPrice">-</div><div style="font-size:0.68rem;color:var(--text-muted);" id="mktTime">Diperbarui: -</div></div>
+          <div><div class="price-change" id="mktChange">-</div></div>
+        </div>
+        <div class="src-note">Sumber: Yahoo Finance ^JKSE via proxy; cadangan TradingView (IDX:COMPOSITE) bila jalur chart gagal.</div>
+      </div>
+      <div class="card">
+        <div class="card-title"><span>Sektor Menguat / Melemah</span><span class="agent-pill fund">Rata-rata Konstituen</span></div>
+        <div id="sectorList"><div style="font-size:0.78rem;color:var(--text-muted);">Memuat atau data tidak tersedia...</div></div>
+      </div>
+      <div class="card">
+        <div class="card-title"><span>Volume Tertinggi (keranjang pantauan)</span><span class="agent-pill tech">Top 5</span></div>
+        <div id="volumeList"><div style="font-size:0.78rem;color:var(--text-muted);">Memuat atau data tidak tersedia...</div></div>
+      </div>
+      <button class="btn-copy" onclick="loadMarket(true)">🔄 Muat Ulang Data Pasar</button>
+    </div>
+
+    <div id="tab-fair" class="hidden">
+      <div class="card">
+        <div class="card-title"><span>Harga Wajar — Benjamin Graham</span><span class="agent-pill fund">Graham Number</span></div>
+        <div style="font-size:0.72rem;color:var(--text-muted);line-height:1.5;margin-bottom:10px;">Formula: <strong>√(22.5 × EPS × BVPS)</strong>. Ketik kode saham lalu ketuk <strong>"Isi Otomatis & Hitung"</strong>.</div>
+        <div class="search-box">
+          <input type="text" id="fvCode" placeholder="KODE SAHAM (contoh: BBRI)" maxlength="6">
+          <button class="btn-action" id="fvBtn" onclick="runFairValue()">Isi Otomatis & Hitung</button>
+        </div>
+        <div class="metric-grid" style="margin-bottom:8px;">
+          <div class="metric-box"><div class="metric-label">Harga Saat Ini (Rp)</div><input type="text" id="fvPrice" inputmode="decimal" class="fv-input" placeholder="contoh: 4.500" oninput="computeGraham()"></div>
+          <div class="metric-box"><div class="metric-label">EPS TTM</div><input type="text" id="fvEps" inputmode="decimal" class="fv-input" placeholder="contoh: 100" oninput="computeGraham()"></div>
+          <div class="metric-box"><div class="metric-label">BVPS</div><input type="text" id="fvBvps" inputmode="decimal" class="fv-input" placeholder="contoh: 2.000" oninput="computeGraham()"></div>
+          <div class="metric-box"><div class="metric-label">Sumber Isi</div><div class="metric-value" id="fvSource">-</div></div>
+        </div>
+        <button class="btn-copy" onclick="computeGraham()">🧮 Hitung Ulang</button>
+        <div id="fvResult" class="report-card hidden"></div>
+      </div>
+    </div>
+
+    <div id="tab-clinic" class="hidden">
+      <div class="card">
+        <div class="card-title"><span>🏥 Klinik Saham</span><span class="agent-pill fund">Skor Kesehatan A/B/C/D</span></div>
+        <div style="font-size:0.72rem;color:var(--text-muted);line-height:1.5;margin-bottom:10px;">Analisis kesehatan fundamental dengan skor A (Sehat) → D (Kritis). Data otomatis; AI menyusun rekomendasi & pros/cons.</div>
+        <div class="search-box">
+          <input type="text" id="clinicCode" placeholder="KODE SAHAM (contoh: BBCA, ASII)" maxlength="6">
+          <button class="btn-action" id="clinicBtn" onclick="runClinic()">🏥 Analisis</button>
+        </div>
+        <div class="clinic-sector">
+          <button class="sector-btn active" id="sectorNonBank" onclick="setSector('non-bank')">Non-Bank</button>
+          <button class="sector-btn" id="sectorBank" onclick="setSector('bank')">Bank</button>
+        </div>
+        <div class="metric-grid" id="clinicInputs" style="margin-bottom:8px;"></div>
+        <div id="clinicResult" class="hidden"></div>
+        <div class="src-note">Semua kolom metrik bisa diisi manual (terisi otomatis bila sumber punya datanya). Metrik kosong & tidak diisi manual tidak ikut menghitung skor.</div>
+      </div>
+    </div>
+
+    <div id="tab-watchlist" class="hidden">
+      <div class="card">
+        <div class="card-title"><span>Watchlist Tersimpan</span><span style="font-size:0.75rem; color:var(--accent);" id="watchlistCount">0 Saham</span></div>
+        <div id="watchlistContainer"></div>
+      </div>
+    </div>
+
+    <div id="tab-info" class="hidden">
+      <div class="card">
+        <div class="card-title">Tes Koneksi & Bridge</div>
+        <button class="btn-copy" style="margin-top:0;" onclick="runBridgeTest()">🩺 Jalankan Tes Koneksi & Bridge</button>
+      </div>
+      <div class="disclaimer-box">
+        <strong>PERNYATAAN DISIPLIN RISIKO:</strong><br>
+        Aplikasi ini TIDAK memberikan kepastian pergerakan harga dan TIDAK melakukan transaksi otomatis. Gunakan Stop Loss untuk melindungi modal Anda.
+      </div>
+    </div>
+  </div>
+
+  <nav class="bottom-nav">
+    <div class="nav-item active" onclick="switchTab('analysis')"><div class="nav-icon">⚡</div><span>Analisis</span></div>
+    <div class="nav-item" onclick="switchTab('market')"><div class="nav-icon">📊</div><span>Market</span></div>
+    <div class="nav-item" onclick="switchTab('fair')"><div class="nav-icon">💰</div><span>Wajar</span></div>
+    <div class="nav-item" onclick="switchTab('clinic')"><div class="nav-icon">🏥</div><span>Klinik</span></div>
+    <div class="nav-item" onclick="switchTab('watchlist')"><div class="nav-icon">⭐</div><span>Watchlist</span></div>
+    <div class="nav-item" onclick="switchTab('info')"><div class="nav-icon">ℹ️</div><span>Info</span></div>
+  </nav>
+
+  <script>
+    const GEMINI_MODELS = ["gemini-3.8-flash", "gemini-2.5-flash"];
+    const BUILT_IN_KEY = "AQ.Ab8RN6JMYB8jXr-kdkK-iD5qxHuyDQHVmRQ9m8CnIJi050c8lg";
+    const GAS_PROXY = "https://script.google.com/macros/s/AKfycbwHCSQEFe0-606f6_dOZNrgX1LvuAC_TlnLnRVMeGTl8saPD2RcbC1nUT9vOG13jf6_OQ/exec";
+    const QWEN_MODELS = ["qwen/qwen3.8-27b:free", "openrouter/free"];
+    const MARKET_TTL = 5 * 60 * 1000;
+    const TV_COLUMNS = ["close","change","volume","market_cap_basic","price_earnings_ttm","price_book_fq","dividends_yield_current","total_revenue_fy","net_income_fy","return_on_equity_fy","debt_to_equity_fq","earnings_per_share_basic_ttm","free_cash_flow_fy","revenue_growth_fy","net_income_growth_fy","book_value_per_share_fq","current_ratio_fq"];
+    const FUND_KEYS = ["per","pbv","eps","revenue","netIncome","fcf","marketCap","roe","der","divYield","revGrowth","earnGrowth","bvps","currentRatio","car","npl"];
+    const SCR_UNIVERSE = ["BBCA","BBRI","BMRI","BBNI","BRIS","ASII","TLKM","UNVR","ICBP","INDF","KLBF","CPIN","JPFA","ANTM","MDKA","PTBA","ITMG","ADRO","PGAS","GOTO","MTEL","TOWR","TBIG","PWON","BSDE","CTRA","SMRA","ADMR","NCKL","BUMI","RGAS","MINA"];
+    const SCR_COLUMNS = ["close","change","volume","price_earnings_ttm","price_book_fq","return_on_equity_fy","debt_to_equity_fq","earnings_per_share_basic_ttm","book_value_per_share_fq"];
+    const CLINIC_FIELDS = {
+      "non-bank": [ {k:"roe",l:"ROE %"}, {k:"pbv",l:"PBV"}, {k:"per",l:"PER"}, {k:"der",l:"DER %"}, {k:"currentRatio",l:"Current Ratio"} ],
+      "bank":     [ {k:"roe",l:"ROE %"}, {k:"pbv",l:"PBV"}, {k:"per",l:"PER"}, {k:"npl",l:"NPL %"}, {k:"car",l:"CAR %"} ]
+    };
+    const SECTOR_MAP = { BBCA:"Financials", BBRI:"Financials", BMRI:"Financials", BNII:"Financials", BNGA:"Financials", ASII:"Industrials", TLKM:"Telekomunikasi", UNVR:"Consumer Non-Cyclical", ICBP:"Consumer Non-Cyclical", INDF:"Consumer Non-Cyclical", ANTM:"Materials", MDKA:"Materials", PTBA:"Energy", ITMG:"Energy", KLBF:"Healthcare", GOTO:"Technology" };
+
+    let currentTicker = "";
+    let watchlist = JSON.parse(localStorage.getItem('gemini_ihsg_watchlist') || '["ADMR", "BUMI", "NCKL"]');
+    let clinicSector = "non-bank";
+
+    const $ = id => document.getElementById(id);
+    const hasVal = v => v !== null && v !== undefined;
+    function getEngine() { return localStorage.getItem('engine_choice') || 'gemini'; }
+    function getStoredKey() { return localStorage.getItem('google_ai_studio_key') || BUILT_IN_KEY; }
+
+    function updateEngineUI() {
+      const e = getEngine();
+      $('engGemini').className = e === 'gemini' ? 'on-gemini' : '';
+      $('engQwen').className = e === 'qwen' ? 'on-qwen' : '';
+      $('engineNote').innerText = e === 'qwen' ? "via Apps Script" : "";
+      $('masterPill').innerText = "Master Agent • " + (e === 'qwen' ? "Qwen" : "Gemini");
+    }
+    function setEngine(e) {
+      if (e === 'qwen' && !GAS_PROXY) return alert("Mesin Qwen membutuhkan Apps Script (GAS_PROXY).");
+      localStorage.setItem('engine_choice', e); updateEngineUI();
+    }
+    function updateKeyButtonState() {
+      const key = getStoredKey(); const btn = $('keyStatusBtn');
+      if (key) { btn.innerText = "🔑 Key Aktif"; btn.style.color = "var(--green)"; btn.style.borderColor = "rgba(34,197,94,0.4)"; btn.style.background = "rgba(34,197,94,0.1)"; }
+      else { btn.innerText = "🔑 Key"; btn.style.color = "#c084fc"; }
+    }
+    function toggleKeyModal(show) {
+      if (show) { $('apiKeyInput').value = localStorage.getItem('google_ai_studio_key') || ""; $('apiKeyModal').classList.remove('hidden'); }
+      else $('apiKeyModal').classList.add('hidden');
+    }
+    async function saveApiKey() {
+      const val = $('apiKeyInput').value.trim().replace(/\s+/g, "");
+      if (!val) { localStorage.removeItem('google_ai_studio_key'); updateKeyButtonState(); toggleKeyModal(false); return alert("Key override dihapus."); }
+      if (!/^(AIza|AQ\.)/.test(val)) return alert("Format key salah.");
+      try {
+        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${val}`);
+        if (!res.ok) { const e = await res.json().catch(()=>({})); return alert("❌ Key ditolak Google:\n" + (e.error?.message || ("HTTP " + res.status))); }
+        localStorage.setItem('google_ai_studio_key', val); updateKeyButtonState(); toggleKeyModal(false); alert("✅ API Key valid & tersimpan.");
+      } catch (err) { alert("Gagal memverifikasi key: " + err.message); }
+    }
+    function switchTab(t) {
+      document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+      ['tab-analysis','tab-market','tab-fair','tab-clinic','tab-watchlist','tab-info'].forEach(id => $(id).classList.add('hidden'));
+      $('tab-' + t).classList.remove('hidden');
+      document.querySelectorAll('.nav-item')[{analysis:0,market:1,fair:2,clinic:3,watchlist:4,info:5}[t]].classList.add('active');
+      if (t === 'watchlist') renderWatchlist();
+      if (t === 'market') loadMarket(false);
+      if (t === 'fair') autoFillFair();
+    }
+    function quickSelect(t) { $('stockInput').value = t; runPipeline(); }
+    function setStep(w) {
+      $('step-data').className = "pipeline-step" + (w === 'data' ? ' active' : '');
+      $('step-tech').className = "pipeline-step" + (w === 'tech' ? ' active' : '');
+      $('step-gemini').className = "pipeline-step gemini" + (w === 'gemini' ? ' active' : '');
+    }
+    function setChip(id, state) { $(id).className = "achip " + state; }
+    function setSector(s) {
+      clinicSector = s;
+      $('sectorNonBank').className = "sector-btn" + (s === 'non-bank' ? ' active' : '');
+      $('sectorBank').className = "sector-btn" + (s === 'bank' ? ' active' : '');
+      if (window.lastClinicData) { renderClinicInputs(window.lastClinicData.fund0); recalcClinic(); }
+    }
+
+    async function fetchWithTimeout(url, ms = 12000, opts) {
+      const ctrl = new AbortController(); const t = setTimeout(() => ctrl.abort(), ms);
+      try { return await fetch(url, Object.assign({ signal: ctrl.signal, redirect: "follow" }, opts || {})); } finally { clearTimeout(t); }
+    }
+    async function fetchWithProxy(url) {
+      const target = url + (url.includes("?") ? "&" : "?") + "_=" + Date.now();
+      const errors = [];
+      const gasRun = async () => {
+        const r = await fetchWithTimeout(GAS_PROXY + "?url=" + encodeURIComponent(url), 25000);
+        if (!r.ok) throw new Error("HTTP " + r.status);
+        const j = await r.json();
+        if (j.error) throw new Error(j.error);
+        if (j.body === undefined || j.body === null) throw new Error("body kosong");
+        return JSON.parse(j.body);
+      };
+      const attempts = [
+        ...(GAS_PROXY ? [ { name:"AppsScript", run: gasRun }, { name:"AppsScript-retry", run: gasRun } ] : []),
+        { name:"allorigins-raw", run:async () => { const r = await fetchWithTimeout("https://api.allorigins.win/raw?url=" + encodeURIComponent(target)); if (!r.ok) throw new Error("HTTP " + r.status); return JSON.parse(await r.text()); }},
+        { name:"allorigins-get", run:async () => { const r = await fetchWithTimeout("https://api.allorigins.win/get?url=" + encodeURIComponent(target)); if (!r.ok) throw new Error("HTTP " + r.status); const j = await r.json(); if (!j.contents) throw new Error("contents kosong"); return JSON.parse(j.contents); }},
+        { name:"codetabs", run:async () => { const r = await fetchWithTimeout("https://api.codetabs.com/v1/proxy?quest=" + encodeURIComponent(target)); if (!r.ok) throw new Error("HTTP " + r.status); return JSON.parse(await r.text()); }},
+        { name:"corsproxy", run:async () => { const r = await fetchWithTimeout("https://corsproxy.io/?url=" + encodeURIComponent(target)); if (!r.ok) throw new Error("HTTP " + r.status); return JSON.parse(await r.text()); }},
+      ];
+      for (const a of attempts) { try { return await a.run(); } catch (e) { errors.push(a.name + ": " + ((e && e.name === "AbortError") ? "timeout" : ((e && e.message) || e))); } }
+      throw new Error("Semua jalur data gagal → " + errors.join(" | "));
+    }
+    async function fetchChart(symbol, range = "1y", interval = "1d") {
+      const hosts = ["query1.finance.yahoo.com", "query2.finance.yahoo.com"];
+      let lastErr = null;
+      for (const h of hosts) {
+        try { return await fetchWithProxy(`https://${h}/v8/finance/chart/${encodeURIComponent(symbol)}?interval=${interval}&range=${range}`); }
+        catch (e) { lastErr = e; }
+      }
+      throw lastErr;
+    }
+    function tvMap(j) {
+      const row = j && j.data && j.data[0];
+      if (!row) return null;
+      const d = row.d, g = i => (d[i] === undefined || d[i] === null) ? null : d[i];
+      return { price:g(0), changePct:g(1), volume:g(2), marketCap:g(3), per:g(4), pbv:g(5), divYield:g(6), revenue:g(7), netIncome:g(8), roe:g(9), der:g(10), eps:g(11), fcf:g(12), revGrowth:g(13), earnGrowth:g(14), bvps:g(15), currentRatio:g(16), car:null, npl:null };
+    }
+    const tvBody = (codes, cols) => JSON.stringify({ symbols: { tickers: (Array.isArray(codes)?codes:[codes]).map(c => "IDX:" + c), query: { types: [] } }, columns: cols || TV_COLUMNS });
+    async function fetchFundamentals(ticker) {
+      let y = null, tv = null;
+      if (GAS_PROXY) {
+        try { const r = await fetchWithTimeout(GAS_PROXY + "?fund=" + encodeURIComponent(ticker + ".JK"), 25000); if (r.ok) { const j = await r.json(); if (j && !j.error) y = j; } } catch (_) {}
+        try { const r = await fetchWithTimeout(GAS_PROXY + "?tv=" + encodeURIComponent(ticker), 25000); if (r.ok) { const j = await r.json(); if (j && !j.error && hasVal(j.price)) tv = j; } } catch (_) {}
+      }
+      if (!tv) {
+        try {
+          const r = await fetchWithTimeout("https://scanner.tradingview.com/indonesia/scan", 12000, { method:"POST", headers:{ "Content-Type":"application/json" }, body: tvBody(ticker) });
+          if (r.ok) { const m = tvMap(await r.json()); if (m && hasVal(m.price)) tv = m; }
+        } catch (_) {}
+      }
+      if (!y && !tv) return null;
+      const merged = {}; let usedY = false, usedT = false;
+      FUND_KEYS.forEach(k => {
+        let v = (y && hasVal(y[k])) ? y[k] : null;
+        if (v !== null) usedY = true; else if (tv && hasVal(tv[k])) { v = tv[k]; usedT = true; }
+        merged[k] = v;
+      });
+      if (!usedY && !usedT) return null;
+      merged.source = (usedY && usedT) ? "Yahoo crumb + TradingView" : usedY ? "Yahoo crumb" : "TradingView";
+      return merged;
+    }
+    async function tvSnapshot(code) {
+      if (!GAS_PROXY) return null;
+      try { const r = await fetchWithTimeout(GAS_PROXY + "?tv=" + encodeURIComponent(code), 20000); if (!r.ok) return null; const f = await r.json(); return (!f || f.error || !hasVal(f.price)) ? null : f; } catch (_) { return null; }
+    }
+    function saveCache(t, json) { try { localStorage.setItem("cache_" + t, JSON.stringify({ t: Date.now(), json })); } catch(_){} }
+    function loadCache(t) { try { const r = localStorage.getItem("cache_" + t); return r ? JSON.parse(r) : null; } catch(_) { return null; } }
+
+    const SMA = (d,p) => (!d || d.length < p) ? null : d.slice(-p).reduce((a,b)=>a+b,0)/p;
+    function EMA(d,p) { if (!d || d.length < p) return null; const k = 2/(p+1); let e = SMA(d.slice(0,p),p); for (let i=p;i<d.length;i++) e = d[i]*k + e*(1-k); return e; }
+    function RSI(c,p=14) { if (!c || c.length < p+1) return null; let g=0,l=0; for (let i=c.length-p;i<c.length;i++){const d=c[i]-c[i-1]; if(d>=0)g+=d; else l-=d;} const al=l/p; if(al===0)return 100; return 100-(100/(1+(g/p)/al)); }
+    function ATR(h,l,c,p=14) { if (c.length < p+1) return null; const t=[]; for (let i=c.length-p;i<c.length;i++) t.push(Math.max(h[i]-l[i], Math.abs(h[i]-c[i-1]), Math.abs(l[i]-c[i-1]))); return t.reduce((a,b)=>a+b,0)/p; }
+    function computeMetrics(candle) {
+      const q = candle.indicators.quote[0];
+      const closes = q.close.filter(x => x !== null && !isNaN(x));
+      const highs  = q.high.filter(x => x !== null && !isNaN(x));
+      const lows   = q.low.filter(x => x !== null && !isNaN(x));
+      const vols   = q.volume ? q.volume.filter(x => x !== null && !isNaN(x)) : [];
+      if (closes.length < 20) throw new Error("Data harga historis tidak cukup");
+      const meta = candle.meta;
+      const last = meta.regularMarketPrice || closes[closes.length-1];
+      const prev = closes[closes.length-2];
+      const chPct = ((last - prev) / prev) * 100;
+      const rsi = RSI(closes,14), ma20 = SMA(closes,20), ma50 = SMA(closes,50), ma200 = SMA(closes,200);
+      const e12 = EMA(closes,12), e26 = EMA(closes,26);
+      const macd = (e12 && e26) ? e12 - e26 : null;
+      const support = Math.min(...lows.slice(-20)), resistance = Math.max(...highs.slice(-20));
+      const atr = ATR(highs,lows,closes,14) || last*0.03;
+      const prevHigh = Math.max(...highs.slice(-21,-1)), prevLow = Math.min(...lows.slice(-21,-1));
+      const breakout = last > prevHigh ? "BREAKOUT ↑" : (last < prevLow ? "BREAKDOWN ↓" : "Dalam rentang");
+      const trend = (last > ma20 && ma20 > ma50) ? "Bullish" : (last < ma20 && ma20 < ma50) ? "Bearish" : "Sideways";
+      const momentum = rsi === null ? "-" : rsi < 30 ? "Oversold (potensi reversal naik)" : rsi > 70 ? "Overbought (potensi reversal turun)" : "Netral";
+      const reversal = (rsi !== null && rsi < 30) ? "RSI oversold — pantau konfirmasi reversal" : (rsi !== null && rsi > 70) ? "RSI overbought — pantau konfirmasi reversal" : "Tidak ada sinyal reversal ekstrem";
+      const volume = vols[vols.length-1] || 0;
+      const avgVol = vols.length >= 20 ? vols.slice(-20).reduce((a,b)=>a+b,0)/20 : null;
+      const volRatio = (avgVol && volume) ? volume / avgVol : null;
+      const entryLow = support, entryHigh = Math.min(last, support * 1.03);
+      const entryMid = (entryLow + entryHigh) / 2;
+      const sl = support - atr;
+      const tp1 = resistance;
+      const tp2 = resistance + (resistance - support) * 0.5;
+      const rr = (entryMid - sl) > 0 ? (tp1 - entryMid) / (entryMid - sl) : null;
+      const riskPct = entryMid > 0 ? ((entryMid - sl) / entryMid) * 100 : null;
+      const atrPct = (atr / last) * 100;
+      return { last, prev, chPct, rsi, ma20, ma50, ma200, macd, support, resistance, atr, breakout, trend, momentum, reversal, volume, volRatio, closesLast: closes.slice(-130), risk: { entryLow, entryHigh, sl, tp1, tp2, rr, riskPct, atrPct } };
+    }
+
+    const rp = n => !hasVal(n) || isNaN(n) ? "Data tidak tersedia" : "Rp " + Math.round(n).toLocaleString('id-ID');
+    const pctRaw = n => !hasVal(n) || isNaN(n) ? "Data tidak tersedia" : Number(n).toFixed(2) + "%";
+    const num = n => !hasVal(n) || isNaN(n) ? "Data tidak tersedia" : Number(n).toLocaleString('id-ID',{maximumFractionDigits:2});
+    function bigIDR(n) { if (!hasVal(n) || isNaN(n)) return "Data tidak tersedia"; const a = Math.abs(n); const s = n < 0 ? "-" : ""; if (a >= 1e12) return s + "Rp " + (a/1e12).toFixed(1) + " T"; if (a >= 1e9) return s + "Rp " + (a/1e9).toFixed(1) + " M"; if (a >= 1e6) return s + "Rp " + (a/1e6).toFixed(1) + " jt"; return s + "Rp " + Math.round(a).toLocaleString('id-ID'); }
+    function volIDR(n) { if (!n) return "Data tidak tersedia"; if (n >= 1e9) return (n/1e9).toFixed(2) + " M lembar"; if (n >= 1e6) return (n/1e6).toFixed(1) + " jt lembar"; return Math.round(n).toLocaleString('id-ID') + " lembar"; }
+    const esc = s => String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+    function parseNumID(s) {
+      if (!hasVal(s)) return null;
+      let t = String(s).trim().replace(/\s/g,"");
+      if (!t) return null;
+      if (t.includes(",")) t = t.replace(/\./g,"").replace(",", ".");
+      else if (/^\d{1,3}(\.\d{3})+$/.test(t)) t = t.replace(/\./g,"");
+      const n = parseFloat(t);
+      return isNaN(n) ? null : n;
+    }
+
+    function renderSparkline(closes, s, r) {
+      const box = $('sparkBox');
+      if (!closes || closes.length < 2) { box.innerHTML = ""; return; }
+      const w = 300, h = 84, pad = 6;
+      let min = Math.min(...closes), max = Math.max(...closes);
+      if (hasVal(s)) min = Math.min(min, s);
+      if (hasVal(r)) max = Math.max(max, r);
+      if (max === min) max = min + 1;
+      const X = i => pad + i * (w - 2*pad) / (closes.length - 1);
+      const Y = v => h - pad - ((v - min) / (max - min)) * (h - 2*pad);
+      const pts = closes.map((v,i) => X(i).toFixed(1) + "," + Y(v).toFixed(1)).join(" ");
+      const area = "M" + X(0).toFixed(1) + "," + Y(closes[0]).toFixed(1) + " " + closes.map((v,i) => "L" + X(i).toFixed(1) + "," + Y(v).toFixed(1)).join(" ") + " L" + X(closes.length-1).toFixed(1) + "," + (h-pad) + " L" + X(0).toFixed(1) + "," + (h-pad) + " Z";
+      let lines = "";
+      if (hasVal(s) && s >= min && s <= max) lines += `<line x1="${pad}" x2="${w-pad}" y1="${Y(s).toFixed(1)}" y2="${Y(s).toFixed(1)}" stroke="#22c55e" stroke-width="1" stroke-dasharray="4 3" opacity="0.85"/><text x="${w-pad}" y="${(Y(s)-3).toFixed(1)}" fill="#22c55e" font-size="8" text-anchor="end">S ${Math.round(s).toLocaleString('id-ID')}</text>`;
+      if (hasVal(r) && r >= min && r <= max) lines += `<line x1="${pad}" x2="${w-pad}" y1="${Y(r).toFixed(1)}" y2="${Y(r).toFixed(1)}" stroke="#ef4444" stroke-width="1" stroke-dasharray="4 3" opacity="0.85"/><text x="${w-pad}" y="${(Y(r)+9).toFixed(1)}" fill="#ef4444" font-size="8" text-anchor="end">R ${Math.round(r).toLocaleString('id-ID')}</text>`;
+      const up = closes[closes.length-1] >= closes[0];
+      const col = up ? "#22c55e" : "#ef4444";
+      box.innerHTML = `<svg viewBox="0 0 ${w} ${h}" style="width:100%;height:84px;display:block;"><defs><linearGradient id="sg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="${col}" stop-opacity="0.35"/><stop offset="100%" stop-color="${col}" stop-opacity="0"/></linearGradient></defs><path d="${area}" fill="url(#sg)"/><polyline class="spark-line" points="${pts}" fill="none" stroke="${col}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>${lines}</svg><div style="font-size:0.62rem;color:#64748b;margin-top:4px;">Sparkline ±6 bulan + garis Support (hijau) & Resistance (merah).</div>`;
+    }
+    function renderTfBadge(d, w) {
+      const el = $('tfBadge'); el.classList.remove('hidden');
+      if (!w) { el.className = 'tf-badge tf-warn'; el.innerText = 'MULTI-TF: data weekly tidak tersedia → hanya daily yang dinilai.'; return; }
+      if (d === w && d !== 'Sideways') { el.className = 'tf-badge tf-ok'; el.innerText = 'TF SEARAH ✅ Daily ' + d + ' + Weekly ' + w + ' → sinyal lebih kuat.'; }
+      else if (d === 'Sideways' && w === 'Sideways') { el.className = 'tf-badge tf-warn'; el.innerText = 'TF NETRAL: Daily & Weekly sideways → tunggu breakout.'; }
+      else { el.className = 'tf-badge tf-warn'; el.innerText = 'TF BERCABANG ⚠️ Daily ' + d + ' vs Weekly ' + w + ' → konfirmasi berkurang.'; }
+    }
+    let candleChart = null, candleSeries = null, candlePLs = [];
+    function renderCandles(candle, support, resistance) {
+      if (typeof LightweightCharts === 'undefined') { $('candleCard').style.display = 'none'; return; }
+      try {
+        const q = candle.indicators.quote[0], ts = candle.timestamp || [];
+        const data = [];
+        for (let i = 0; i < ts.length; i++) {
+          const o = q.open[i], h = q.high[i], l = q.low[i], c = q.close[i];
+          if (o == null || h == null || l == null || c == null) continue;
+          data.push({ time: ts[i], open: o, high: h, low: l, close: c });
+        }
+        if (!data.length) { $('candleCard').style.display = 'none'; return; }
+        const el = $('candleChart');
+        $('candleCard').style.display = '';
+        if (!candleChart) {
+          candleChart = LightweightCharts.createChart(el, { layout: { background: { color: 'transparent' }, textColor: '#8ca0ba', fontSize: 10 }, grid: { vertLines: { color: 'rgba(255,255,255,0.05)' }, horzLines: { color: 'rgba(255,255,255,0.05)' } }, timeScale: { timeVisible: false, borderColor: '#1f2c47' }, rightPriceScale: { borderColor: '#1f2c47' }, width: el.clientWidth || 320, height: 240 });
+          candleSeries = candleChart.addCandlestickSeries({ upColor:'#22c55e', downColor:'#ef4444', borderUpColor:'#22c55e', borderDownColor:'#ef4444', wickUpColor:'#22c55e', wickDownColor:'#ef4444' });
+          window.addEventListener('resize', () => { if (candleChart) candleChart.applyOptions({ width: el.clientWidth || 320 }); });
+        }
+        candleSeries.setData(data);
+        candlePLs.forEach(pl => { try { candleSeries.removePriceLine(pl); } catch(_){} });
+        candlePLs = [];
+        if (hasVal(support)) candlePLs.push(candleSeries.createPriceLine({ price: support, color:'#22c55e', lineWidth:1, lineStyle: LightweightCharts.LineStyle.Dashed, axisLabelVisible:true, title:'S' }));
+        if (hasVal(resistance)) candlePLs.push(candleSeries.createPriceLine({ price: resistance, color:'#ef4444', lineWidth:1, lineStyle: LightweightCharts.LineStyle.Dashed, axisLabelVisible:true, title:'R' }));
+        candleChart.timeScale().fitContent();
+      } catch (_) { $('candleCard').style.display = 'none'; }
+    }
+
+    function bvpsOf(fund, price) {
+      if (!fund) return null;
+      if (hasVal(fund.bvps)) return fund.bvps;
+      if (price && hasVal(fund.pbv) && fund.pbv !== 0) return price / fund.pbv;
+      return null;
+    }
+    function fillFairFields(price, fund) {
+      $('fvPrice').value = hasVal(price) ? Math.round(price).toLocaleString('id-ID') : "";
+      const eps = fund ? fund.eps : null;
+      const b = bvpsOf(fund, price);
+      $('fvEps').value = hasVal(eps) ? Number(eps).toLocaleString('id-ID',{maximumFractionDigits:2}) : "";
+      $('fvBvps').value = hasVal(b) ? Number(b).toLocaleString('id-ID',{maximumFractionDigits:2}) : "";
+      $('fvSource').innerText = fund ? ("EPS: " + fund.source + " | BVPS: " + (hasVal(fund.bvps) ? "server riil" : "harga÷PBV")) : "Data tidak tersedia";
+      computeGraham();
+    }
+    function autoFillFair() { if (window.lastTicker) { $('fvCode').value = window.lastTicker; fillFairFields(window.lastPrice, window.lastFund); } }
+    async function runFairValue() {
+      const code = (($('fvCode').value || "").trim().toUpperCase()) || window.lastTicker;
+      if (!code) return alert("Ketik kode saham terlebih dahulu!");
+      $('fvBtn').disabled = true; $('fvBtn').innerText = "Mengambil data...";
+      try {
+        const json = await fetchChart(code + ".JK", "5d");
+        const meta = json?.chart?.result?.[0]?.meta;
+        if (!meta) throw new Error("Kode saham tidak ditemukan di BEI");
+        const price = meta.regularMarketPrice;
+        const fund = await fetchFundamentals(code).catch(() => null);
+        window.lastTicker = code; window.lastPrice = price; window.lastFund = fund;
+        fillFairFields(price, fund);
+      } catch (e) { alert("Gagal menghitung harga wajar: " + e.message); }
+      finally { $('fvBtn').disabled = false; $('fvBtn').innerText = "Isi Otomatis & Hitung"; }
+    }
+    function computeGraham() {
+      const price = parseNumID($('fvPrice').value), eps = parseNumID($('fvEps').value), b = parseNumID($('fvBvps').value);
+      const box = $('fvResult'); box.classList.remove('hidden');
+      if (price === null || eps === null || b === null) { box.innerHTML = '<div style="font-size:0.8rem;color:var(--yellow);">Lengkapi field harga, EPS, dan BVPS.</div>'; return; }
+      if (eps <= 0 || b <= 0) { box.innerHTML = '<div style="font-size:0.8rem;color:var(--red);">Graham Number TIDAK terdefinisi: EPS & BVPS harus positif.</div>'; return; }
+      const gv = Math.sqrt(22.5 * eps * b);
+      const mos = (1 - price / gv) * 100;
+      const up = (gv / price - 1) * 100;
+      let v, vc;
+      if (mos >= 33) { v = "UNDERVERUED — margin of safety besar (≥33%)"; vc = "var(--green)"; }
+      else if (mos >= 15) { v = "Undervalued ringan (MOS 15–33%)"; vc = "var(--green)"; }
+      else if (mos > -15) { v = "FAIR VALUE — harga dekat nilai wajar (±15%)"; vc = "var(--yellow)"; }
+      else { v = "OVERVALUED — harga di atas nilai wajar (>15%)"; vc = "var(--red)"; }
+      box.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:10px;"><div><div style="font-size:0.68rem;color:var(--text-muted);">HARGA WAJAR (GRAHAM NUMBER)</div><div style="font-size:1.45rem;font-weight:800;color:#fff;">' + rp(gv) + '</div></div><div style="text-align:right;"><div style="font-size:0.68rem;color:var(--text-muted);">HARGA PASAR</div><div style="font-size:1rem;font-weight:700;">' + rp(price) + '</div></div></div><div class="metric-grid"><div class="metric-box"><div class="metric-label">Margin of Safety</div><div class="metric-value" style="color:' + (mos >= 0 ? 'var(--green)' : 'var(--red)') + ';">' + (mos >= 0 ? '+' : '') + mos.toFixed(1) + '%</div></div><div class="metric-box"><div class="metric-label">Ruang ke Harga Wajar</div><div class="metric-value" style="color:' + (up >= 0 ? 'var(--green)' : 'var(--red)') + ';">' + (up >= 0 ? '+' : '') + up.toFixed(1) + '%</div></div></div><div style="margin-top:10px;font-size:0.82rem;font-weight:800;color:' + vc + ';">' + v + '</div>';
+    }
+
+    function scoreMetric(value, thresholds, higher) {
+      if (!hasVal(value)) return { score: 0, label: "Data tidak tersedia (tidak dihitung)" };
+      const v = Number(value);
+      if (higher) { if (v >= thresholds.A) return { score:4, label:"Sangat Baik" }; if (v >= thresholds.B) return { score:3, label:"Baik" }; if (v >= thresholds.C) return { score:2, label:"Cukup" }; return { score:1, label:"Kurang" }; }
+      else { if (v <= thresholds.A) return { score:4, label:"Sangat Baik" }; if (v <= thresholds.B) return { score:3, label:"Baik" }; if (v <= thresholds.C) return { score:2, label:"Cukup" }; return { score:1, label:"Kurang" }; }
+    }
+    function calculateHealthScore(fund, sector) {
+      const metrics = []; let totalScore = 0, count = 0;
+      if (sector === "bank") {
+        metrics.push({ name:"ROE", value:fund.roe, fmt:pctRaw, score:scoreMetric(fund.roe,{A:15,B:12,C:8},true) });
+        metrics.push({ name:"PBV", value:fund.pbv, fmt:num, score:scoreMetric(fund.pbv,{A:1,B:1.5,C:2},false) });
+        metrics.push({ name:"PER", value:fund.per, fmt:num, score:scoreMetric(fund.per,{A:8,B:12,C:18},false) });
+        metrics.push({ name:"NPL", value:fund.npl, fmt:pctRaw, score:scoreMetric(fund.npl,{A:2,B:3,C:5},false) });
+        metrics.push({ name:"CAR", value:fund.car, fmt:pctRaw, score:scoreMetric(fund.car,{A:15,B:12,C:10},true) });
+      } else {
+        metrics.push({ name:"ROE", value:fund.roe, fmt:pctRaw, score:scoreMetric(fund.roe,{A:20,B:15,C:10},true) });
+        metrics.push({ name:"PBV", value:fund.pbv, fmt:num, score:scoreMetric(fund.pbv,{A:0.8,B:1,C:1.5},false) });
+        metrics.push({ name:"PER", value:fund.per, fmt:num, score:scoreMetric(fund.per,{A:8,B:10,C:15},false) });
+        metrics.push({ name:"DER", value:fund.der, fmt:pctRaw, score:scoreMetric(fund.der,{A:50,B:100,C:150},false) });
+        metrics.push({ name:"Current Ratio", value:fund.currentRatio, fmt:num, score:scoreMetric(fund.currentRatio,{A:2,B:1.5,C:1},true) });
+      }
+      metrics.forEach(m => { if (m.score.score > 0) { totalScore += m.score.score; count++; } });
+      const avgScore = count > 0 ? totalScore / count : 0;
+      let grade, desc;
+      if (count === 0) { grade = "-"; desc = "DATA TIDAK CUKUP"; }
+      else if (avgScore >= 3.5) { grade = "A"; desc = "SEHAT"; }
+      else if (avgScore >= 2.5) { grade = "B"; desc = "CUKUP BAIK"; }
+      else if (avgScore >= 1.5) { grade = "C"; desc = "PERLU PERHATIAN"; }
+      else { grade = "D"; desc = "KRITIS"; }
+      return { grade, desc, metrics, avgScore, count };
+    }
+    function renderMetricBar(score) {
+      const pct = (score / 4) * 100;
+      const color = score >= 3 ? "var(--green)" : score >= 2 ? "var(--yellow)" : "rgba(255,255,255,0.15)";
+      return `<div class="metric-bar"><div class="metric-bar-fill" style="width:${pct}%;background:${color};"></div></div>`;
+    }
+    function renderClinicInputs(fund0) {
+      const fields = CLINIC_FIELDS[clinicSector] || [];
+      $('clinicInputs').innerHTML = fields.map(f => {
+        const v = (fund0 && hasVal(fund0[f.k])) ? Number(fund0[f.k]).toLocaleString('id-ID',{maximumFractionDigits:2}) : "";
+        return `<div class="metric-box"><div class="metric-label">${f.l} (auto/manual)</div><input type="text" inputmode="decimal" class="fv-input" id="ov_${f.k}" value="${v}" placeholder="isi manual" onchange="recalcClinic()"></div>`;
+      }).join('') + `<div class="metric-box"><div class="metric-label">Catatan</div><div class="metric-value" style="font-size:0.68rem;">Kolom kosong = sumber gratis tidak punya datanya. Isi manual lalu klik di luar kolom.</div></div>`;
+    }
+    function effFundFromInputs(fund0) {
+      const f = Object.assign({}, fund0);
+      (CLINIC_FIELDS[clinicSector] || []).forEach(fd => { const el = $('ov_' + fd.k); const v = el ? parseNumID(el.value) : null; if (v !== null) f[fd.k] = v; });
+      return f;
+    }
+    async function runClinic() {
+      const code = (($('clinicCode').value || "").trim().toUpperCase());
+      if (!code) return alert("Ketik kode saham terlebih dahulu!");
+      $('clinicBtn').disabled = true; $('clinicBtn').innerText = "Menganalisis...";
+      try {
+        const fund0 = await fetchFundamentals(code);
+        if (!fund0) throw new Error("Data fundamental tidak tersedia untuk " + code);
+        renderClinicInputs(fund0);
+        const fund = effFundFromInputs(fund0);
+        const result = calculateHealthScore(fund, clinicSector);
+        window.lastClinicData = { code, fund0, fund, result, sector: clinicSector };
+        window.lastClinicAIText = null;
+        renderClinicResult(code, fund, result, clinicSector, false);
+      } catch (e) { alert("Gagal analisis klinik: " + e.message); }
+      finally { $('clinicBtn').disabled = false; $('clinicBtn').innerText = "🏥 Analisis"; }
+    }
+    function recalcClinic() {
+      const d = window.lastClinicData; if (!d) return;
+      const fund = effFundFromInputs(d.fund0);
+      const result = calculateHealthScore(fund, clinicSector);
+      d.fund = fund; d.result = result; d.sector = clinicSector;
+      renderClinicResult(d.code, fund, result, clinicSector, true);
+    }
+    function renderClinicResult(code, fund, result, sector, skipAI) {
+      const box = $('clinicResult'); box.classList.remove('hidden');
+      const scoreClass = "health-" + (result.grade === "-" ? "C" : result.grade);
+      let metricsHtml = '<div class="metric-grid">';
+      result.metrics.forEach(m => { metricsHtml += `<div class="metric-box"><div class="metric-label">${m.name}</div><div class="metric-value">${m.fmt(m.value)}</div><div style="font-size:0.65rem;color:var(--text-muted);margin-top:2px;">${m.score.label}</div>${renderMetricBar(m.score.score)}</div>`; });
+      metricsHtml += '</div>';
+      box.innerHTML = `<div id="clinicPrint"><div class="health-score ${scoreClass}">${result.grade}<div style="font-size:0.8rem;font-weight:700;margin-top:4px;">${result.desc}</div></div><div style="font-size:0.75rem;color:var(--text-muted);margin-bottom:12px;"><strong>${code}.JK</strong> • Sektor: ${sector === 'bank' ? 'Bank' : 'Non-Bank'} • Skor rata-rata: ${result.avgScore.toFixed(1)}/4 (dari ${result.count} metrik tersedia)</div><div class="card-title" style="margin-top:0;"><span>Visualisasi Metrik</span><span class="agent-pill fund">Data Riil</span></div>${metricsHtml}<div id="clinicAI" class="report-card" style="margin-top:16px;"><div style="text-align:center;color:var(--yellow);">🤖 AI sedang menyusun rekomendasi, pros/cons, dan executive summary...</div></div></div><button class="btn-copy" onclick="copyClinic()">📋 Salin Hasil Klinik</button>`;
+      if (skipAI) {
+        $('clinicAI').innerHTML = window.lastClinicAIText ? `<div class="formatted-kv">${esc(window.lastClinicAIText)}</div>` : `<div style="font-size:0.75rem;color:var(--text-muted);">Skor diperbarui dari kolom manual. Ketuk 🏥 Analisis untuk memperbarui ringkasan AI.</div>`;
+        return;
+      }
+      const prompt = `Anda adalah analis saham profesional. Berdasarkan data fundamental ${code}.JK (sektor: ${sector}):\n${result.metrics.map(m => `- ${m.name}: ${m.fmt(m.value)} (${m.score.label})`).join('\n')}\nSkor kesehatan: ${result.grade} (${result.desc})\n\nBerikan analisis singkat: 1) Rekomendasi (Buy/Hold/Sell) + alasan, 2) 3 Kekuatan, 3) 3 Kelemahan/Risiko, 4) Executive Summary 2-3 kalimat. Bahasa Indonesia, ringkas. Jangan mengarang angka.`;
+      callClinicAI(prompt);
+    }
+    async function callClinicAI(prompt) {
+      try { const txt = await callLLM(prompt); window.lastClinicAIText = txt; $('clinicAI').innerHTML = `<div class="formatted-kv">${esc(txt)}</div>`; }
+      catch (e) { $('clinicAI').innerHTML = `<div style="color:var(--red);">⚠️ AI tidak tersedia: ${esc(e.message)}<br>Hasil klinik tetap valid berdasarkan data riil.</div>`; }
+    }
+    function copyClinic() { navigator.clipboard.writeText($('clinicPrint').innerText).then(() => alert("Hasil klinik disalin!")).catch(() => alert("Gagal menyalin.")); }
+
+    async function runScreener() {
+      const btn = $('scrBtn'); btn.disabled = true; btn.innerText = "Scanning...";
+      try {
+        const cache = (() => { try { return JSON.parse(localStorage.getItem('scr_cache')); } catch(_) { return null; } })();
+        if (cache && (Date.now() - cache.t) < 10*60*1000) { renderScr(cache.rows); $('scrNote').innerText = 'Cache ' + new Date(cache.t).toLocaleTimeString('id-ID') + ' (refresh otomatis setelah 10 menit).'; return; }
+        let rows = null;
+        try {
+          const r = await fetchWithTimeout("https://scanner.tradingview.com/indonesia/scan", 20000, { method:"POST", headers:{ "Content-Type":"application/json" }, body: tvBody(SCR_UNIVERSE, SCR_COLUMNS) });
+          if (r.ok) { const j = await r.json(); rows = (j.data || []).map(row => { const d = row.d; return { code: String(row.s || "").replace("IDX:", ""), price: d[0], chg: d[1], vol: d[2], per: d[3], pbv: d[4], roe: d[5], der: d[6], eps: d[7], bvps: d[8] }; }).filter(x => x.code && hasVal(x.price)); }
+        } catch (_) {}
+        if (!rows || !rows.length) {
+          rows = [];
+          for (const c of SCR_UNIVERSE.slice(0, 12)) {
+            $('scrNote').innerText = "Scan via Apps Script: " + c + " ...";
+            const f = await tvSnapshot(c);
+            if (f) rows.push({ code: c, price: f.price, chg: f.changePct, vol: f.volume, per: f.per, pbv: f.pbv, roe: f.roe, der: f.der, eps: f.eps, bvps: f.bvps });
+          }
+        }
+        if (!rows.length) throw new Error("Screener gagal mengambil data.");
+        const scored = rows.map(r => {
+          let s = 0;
+          const mos = (r.eps > 0 && r.bvps > 0 && r.price > 0) ? (1 - r.price / Math.sqrt(22.5 * r.eps * r.bvps)) * 100 : null;
+          if (mos !== null) { if (mos >= 33) s += 3; else if (mos >= 15) s += 2; else if (mos >= 0) s += 1; }
+          if (hasVal(r.per) && r.per > 0 && r.per <= 10) s += 1;
+          if (hasVal(r.pbv) && r.pbv > 0 && r.pbv <= 1.5) s += 1;
+          if (hasVal(r.roe) && r.roe >= 15) s += 2;
+          if (hasVal(r.der) && r.der <= 100) s += 1;
+          return Object.assign({ mos, score: s }, r);
+        }).sort((a,b) => (b.score - a.score) || ((b.mos === null ? -99 : b.mos) - (a.mos === null ? -99 : a.mos)));
+        try { localStorage.setItem('scr_cache', JSON.stringify({ t: Date.now(), rows: scored })); } catch(_){}
+        renderScr(scored);
+        $('scrNote').innerText = 'Diperbarui ' + new Date().toLocaleTimeString('id-ID') + ' • ' + scored.length + ' saham discan.';
+      } catch (e) { alert("Screener gagal: " + e.message); }
+      finally { btn.disabled = false; btn.innerText = "🎯 Scan ±32 Saham Liquid"; }
+    }
+    function renderScr(list) {
+      const box = $('scrResult'); box.classList.remove('hidden');
+      box.innerHTML = list.slice(0, 10).map(r => {
+        const badge = r.score >= 6 ? "🔥" : r.score >= 4 ? "👍" : "•";
+        const mosTxt = r.mos === null ? "-" : (r.mos >= 0 ? "+" : "") + r.mos.toFixed(0) + "%";
+        return `<div class="mkt-row" style="cursor:pointer;" onclick="scrPick('${r.code}')"><span><strong>${r.code}</strong> <span style="color:var(--text-muted);font-size:0.68rem;">${badge} skor ${r.score} • MOS ${mosTxt}</span><br><span style="font-size:0.66rem;color:#64748b;">PER ${r.per == null ? "-" : r.per.toFixed(1)} • PBV ${r.pbv == null ? "-" : r.pbv.toFixed(1)} • ROE ${r.roe == null ? "-" : r.roe.toFixed(0) + "%"}</span></span><span style="text-align:right;"><span style="font-weight:700;">${Math.round(r.price).toLocaleString('id-ID')}</span><br><span class="${(r.chg||0) >= 0 ? 'green' : 'red'}" style="font-size:0.7rem;font-weight:700;">${(r.chg||0) >= 0 ? '+' : ''}${(r.chg||0).toFixed(2)}%</span></span></div>`;
+      }).join('') + `<div class="src-note">Skor = MOS Graham + PER≤10 + PBV≤1,5 + ROE≥15% + DER≤100%. Snapshot TradingView; BUKAN rekomendasi beli.</div>`;
+    }
+    function scrPick(code) { $('clinicCode').value = code; setSector('non-bank'); switchTab('clinic'); runClinic(); }
+
+    function localTechnical(m) {
+      const L = [];
+      L.push("- Trend pendek: harga " + (m.last > m.ma20 ? "DI ATAS" : "DI BAWAH") + " MA20 → bias " + (m.last > m.ma20 ? "positif" : "negatif") + ".");
+      L.push("- Trend menengah: MA20/MA50/MA200 = " + [m.ma20,m.ma50,m.ma200].map(x => x ? Math.round(x) : "-").join("/") + " → " + m.trend + ".");
+      L.push("- Momentum: RSI14 " + (m.rsi ? m.rsi.toFixed(1) : "Data tidak tersedia") + " → " + m.momentum + ".");
+      L.push("- MACD " + (m.macd !== null ? m.macd.toFixed(2) : "Data tidak tersedia") + ".");
+      L.push("- Volume " + volIDR(m.volume) + (m.volRatio ? " = " + m.volRatio.toFixed(2) + "× rata-rata 20 hari" : "") + ".");
+      L.push("- S/R: " + rp(m.support) + " / " + rp(m.resistance) + "; status " + m.breakout + ".");
+      L.push("- Reversal: " + m.reversal + ".");
+      return L.join("\n");
+    }
+    function localFundamental(f) {
+      if (!f) return "- Fundamental: Data tidak tersedia.";
+      const L = [];
+      if (hasVal(f.marketCap)) L.push("- Market cap " + bigIDR(f.marketCap) + ".");
+      L.push("- Revenue " + bigIDR(f.revenue) + "; net profit " + bigIDR(f.netIncome) + ".");
+      L.push("- ROE " + pctRaw(f.roe) + "; DER " + pctRaw(f.der) + "; PER " + num(f.per) + "; PBV " + num(f.pbv) + ".");
+      return L.join("\n");
+    }
+    function localRisk(m) {
+      const r = m.risk; const L = [];
+      L.push("- Entry " + rp(r.entryLow) + "–" + rp(r.entryHigh) + "; SL " + rp(r.sl) + "; T1 " + rp(r.tp1) + "; T2 " + rp(r.tp2) + ".");
+      L.push("- R/R " + (r.rr === null ? "Data tidak tersedia" : "1:" + r.rr.toFixed(2)) + "; risiko " + (r.riskPct === null ? "-" : r.riskPct.toFixed(1) + "%") + "; ATR " + r.atrPct.toFixed(1) + "%.");
+      return L.join("\n");
+    }
+    function localRiskLevel(m) { let s = 0; if (m.risk.atrPct >= 4) s += 2; else if (m.risk.atrPct >= 2.5) s += 1; if (m.trend === "Bearish") s += 1; if (m.rsi !== null && (m.rsi < 30 || m.rsi > 70)) s += 1; if (m.risk.rr !== null && m.risk.rr < 1) s += 1; return s >= 3 ? "Tinggi" : s >= 2 ? "Sedang" : "Rendah"; }
+    function localMaster(ctx, techTxt, fundTxt, riskTxt) {
+      const r = ctx.risk;
+      return `LAPORAN MASTER (MODE LOKAL ALGORITMIK)\n\nA. DATA FAKTUAL\n${factBlock(ctx)}\n${fundBlock(ctx.fund)}\n\nB. INTERPRETASI AI (LOKAL)\n[Technical]\n${techTxt}\n[Fundamental]\n${fundTxt}\n[Risk]\n${riskTxt}\n\n=== FORMAT RESMI ===\nTREND:\n${ctx.trend}\nTECHNICAL:\n${ctx.trend}, momentum ${ctx.momentum.toLowerCase()}, ${ctx.breakout}.\nFUNDAMENTAL:\n${ctx.fund ? "Metrik tersedia sebagian (bagian A)." : "Data tidak tersedia"}\nSUPPORT:\n${rp(ctx.support)}\nRESISTANCE:\n${rp(ctx.resistance)}\nENTRY AREA:\n${rp(r.entryLow)} – ${rp(r.entryHigh)}\nSTOP LOSS:\n${rp(r.sl)}\nTARGET 1:\n${rp(r.tp1)}\nTARGET 2:\n${rp(r.tp2)}\nRISK/REWARD:\n${r.rr === null ? "Data tidak tersedia" : "1 : " + r.rr.toFixed(2)}\nRISIKO:\n${localRiskLevel(ctx)}\nCATATAN:\nMode lokal karena mesin AI tidak tersedia. Bukan rekomendasi transaksi.`;
+    }
+
+    async function geminiCall(prompt) {
+      const apiKey = getStoredKey();
+      let response = null;
+      for (const model of GEMINI_MODELS) {
+        const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+        for (let attempt = 1; attempt <= 2; attempt++) {
+          response = await fetch(endpoint, { method:"POST", headers:{ "Content-Type":"application/json" }, body: JSON.stringify({ contents:[{ parts:[{ text: prompt }] }], generationConfig:{ temperature: 0.2 } }) });
+          if (response.ok) break;
+          if (response.status === 429 || response.status >= 500) {
+            let wait = 3;
+            try { const e = await response.clone().json(); const mm = ((e.error && e.error.message) || "").match(/retry in ([\d.]+)s/); if (mm) wait = parseFloat(mm[1]) + 2; const mh = ((e.error && e.error.message) || "").match(/retry in\s+([\d.]+)h/); if (mh) wait = 9999; } catch(_) {}
+            if (wait > 90) throw new Error("Kuota harian Gemini habis.");
+            if (attempt === 1) { await new Promise(r => setTimeout(r, wait * 1000)); continue; }
+          }
+          break;
+        }
+        if (response.ok) break;
+        if (response.status === 404) continue;
+        break;
+      }
+      if (!response.ok) { let msg = "Gagal menghubungi Gemini API"; try { const e = await response.json(); msg = e.error?.message || msg; } catch(_){} throw new Error(msg); }
+      const j = await response.json();
+      return j.candidates?.[0]?.content?.parts?.[0]?.text || "Tidak ada respon dari Gemini.";
+    }
+    async function qwenCall(prompt) {
+      if (!GAS_PROXY) throw new Error("GAS_PROXY kosong");
+      let lastErr = null;
+      for (const model of QWEN_MODELS) {
+        for (let attempt = 1; attempt <= 3; attempt++) {
+          try {
+            const r = await fetch(GAS_PROXY, { method:"POST", headers:{ "Content-Type":"text/plain;charset=utf-8" }, body: JSON.stringify({ model: model, messages:[{ role:"user", content: prompt }] }) });
+            if (r.status === 405) throw new Error("Apps Script menolak POST (405).");
+            if (!r.ok) throw new Error("Bridge HTTP " + r.status);
+            const text = await r.text();
+            if (text.trim().startsWith("<")) throw new Error("Apps Script membalas HTML.");
+            let j; try { j = JSON.parse(text); } catch(_) { throw new Error("Balasan bridge bukan JSON."); }
+            if (j.error) {
+              const code = (j.error && j.error.code) || null;
+              const err = new Error(String(j.error.message || j.error)); err.code = code;
+              if (code === 429) { lastErr = err; if (attempt < 3) { await new Promise(res => setTimeout(res, attempt === 1 ? 6000 : 15000)); continue; } break; }
+              throw err;
+            }
+            if (j.choices && j.choices[0] && j.choices[0].message) return j.choices[0].message.content || "Tidak ada respon dari Qwen.";
+            throw new Error("Balasan bridge tanpa choices.");
+          } catch (e) {
+            lastErr = e;
+            if (e.code === 429 && attempt < 3) { await new Promise(res => setTimeout(res, attempt === 1 ? 6000 : 15000)); continue; }
+            if (attempt < 3 && /Load failed|network|fetch/i.test(e.message)) { await new Promise(res => setTimeout(res, 3000)); continue; }
+            break;
+          }
+        }
+      }
+      throw lastErr || new Error("Bridge Qwen gagal.");
+    }
+    async function callLLM(prompt) {
+      const order = getEngine() === 'qwen' ? ['qwen','gemini'] : ['gemini','qwen'];
+      const errs = [];
+      for (const eng of order) { try { return await (eng === 'qwen' ? qwenCall(prompt) : geminiCall(prompt)); } catch (e) { errs.push(eng + ": " + e.message); } }
+      throw new Error(errs.join(" | "));
+    }
+
+    const ATURAN = `ATURAN KETAT: 1) Jangan mengarang angka; tulis "Data tidak tersedia" bila kosong. 2) Jangan memberi kepastian arah harga. 3) Pisahkan DATA FAKTUAL, INTERPRETASI AI, ASUMSI/PERHITUNGAN. 4) Ringkas, berbahasa Indonesia.`;
+    function factBlock(ctx) {
+      return `DATA FAKTUAL ${ctx.ticker}.JK: Harga ${rp(ctx.price)} (${ctx.changePct}%); Volume ${volIDR(ctx.volume)}; Trend ${ctx.trend}; ${ctx.breakout}; RSI14 ${ctx.rsi}; MACD ${ctx.macd}; MA20 ${ctx.ma20}; MA50 ${ctx.ma50}; MA200 ${ctx.ma200}; Support ${rp(ctx.support)}; Resistance ${rp(ctx.resistance)}; ATR ${rp(ctx.atr)}.`;
+    }
+    function fundBlock(f) {
+      if (!f) return "DATA FUNDAMENTAL: Data tidak tersedia.";
+      let s = `DATA FUNDAMENTAL (${f.source}): Revenue ${bigIDR(f.revenue)}; Net profit ${bigIDR(f.netIncome)}; EPS ${num(f.eps)}; ROE ${pctRaw(f.roe)}; DER ${pctRaw(f.der)}; PER ${num(f.per)}; PBV ${num(f.pbv)}; FCF ${bigIDR(f.fcf)}; Div yield ${pctRaw(f.divYield)}`;
+      if (hasVal(f.marketCap)) s += `; Market cap ${bigIDR(f.marketCap)}`;
+      return s;
+    }
+    async function runMaster(ctx, fund, techTxt, fundTxt, riskTxt) {
+      setChip('agMaster','run');
+      $('loadingText').innerText = "Master Agent merangkai laporan (1 panggilan AI)...";
+      const pMaster = `${factBlock(ctx)}\n${fundBlock(fund)}\n\nHASIL TECHNICAL AGENT:\n${techTxt}\n\nHASIL FUNDAMENTAL AGENT:\n${fundTxt}\n\nHASIL RISK AGENT:\n${riskTxt}\n\nTugas Anda: MASTER AGENT. Sintesis menjadi SATU laporan. WAJIB diakhiri format: TREND / TECHNICAL / FUNDAMENTAL / SUPPORT / RESISTANCE / ENTRY AREA / STOP LOSS / TARGET 1 / TARGET 2 / RISK-REWARD / RISIKO / CATATAN.\n${ATURAN}`;
+      try { const txt = await callLLM(pMaster); setChip('agMaster','ok'); return { text: txt, local: false }; }
+      catch (e) { setChip('agMaster','fail'); return { text: `⚠️ MODE LOKAL: mesin AI tidak tersedia (${e.message})\n\n` + localMaster(ctx, techTxt, fundTxt, riskTxt), local: true }; }
+    }
+
+    async function runPipeline() {
+      const t = $('stockInput').value.trim().toUpperCase();
+      if (!t) return alert("Ketik kode saham BEI terlebih dahulu!");
+      currentTicker = t; setStep('data');
+      try {
+        let json = null, fromCache = false;
+        try { json = await fetchChart(t + ".JK", "1y"); saveCache(t, json); }
+        catch (netErr) {
+          const c = loadCache(t);
+          if (c && c.json && confirm("Tidak bisa mengambil data live.\nGunakan data cache terakhir (" + new Date(c.t).toLocaleString('id-ID') + ")?")) { json = c.json; fromCache = true; }
+          else throw new Error(netErr.message);
+        }
+        if (!json.chart?.result?.length) throw new Error("Kode saham tidak ditemukan di BEI");
+        const m = computeMetrics(json.chart.result[0]);
+        setStep('tech');
+        const fund = await fetchFundamentals(t).catch(() => null);
+        window.lastTicker = t; window.lastPrice = m.last; window.lastFund = fund;
+        let wTrend = null;
+        try {
+          const wj = await fetchChart(t + ".JK", "1y", "1wk");
+          const wc = wj.chart.result[0].indicators.quote[0].close.filter(x => x !== null && !isNaN(x));
+          if (wc.length >= 25) { const wl = wc[wc.length-1], w10 = SMA(wc,10), w20 = SMA(wc,20); if (w10 && w20) wTrend = (wl > w10 && w10 > w20) ? "Bullish" : (wl < w10 && w10 < w20) ? "Bearish" : "Sideways"; else wTrend = "Sideways"; }
+        } catch (_) {}
+        $('displayTicker').innerText = t + ".JK";
+        $('displayPrice').innerText = rp(m.last);
+        const ce = $('displayChange'); ce.innerText = (m.chPct >= 0 ? "+" : "") + m.chPct.toFixed(2) + "%"; ce.className = "price-change " + (m.chPct >= 0 ? 'green' : 'red');
+        $('lastUpdated').innerText = "Diperbarui: " + new Date().toLocaleString('id-ID') + (fromCache ? " • CACHE OFFLINE" : "");
+        $('valTrend').innerText = m.trend; $('valTrend').className = "metric-value " + (m.trend === "Bullish" ? "green" : m.trend === "Bearish" ? "red" : "yellow");
+        $('valVolume').innerText = volIDR(m.volume);
+        renderTfBadge(m.trend, wTrend);
+        renderSparkline(m.closesLast, m.support, m.resistance);
+        renderCandles(json.chart.result[0], m.support, m.resistance);
+        $('valRsi').innerText = m.rsi ? m.rsi.toFixed(1) : "Data tidak tersedia";
+        $('valMacd').innerText = m.macd !== null ? (m.macd > 0 ? "+" : "") + m.macd.toFixed(2) : "Data tidak tersedia";
+        $('valMaShort').innerText = `${m.ma20 ? Math.round(m.ma20) : '-'} / ${m.ma50 ? Math.round(m.ma50) : '-'}`;
+        $('valMa200').innerText = m.ma200 ? Math.round(m.ma200) : "Data < 200 hari";
+        $('valSupport').innerText = rp(m.support); $('valResistance').innerText = rp(m.resistance);
+        $('valBreakout').innerText = m.breakout; $('valMomentum').innerText = m.momentum;
+        $('fRevenue').innerText = fund ? bigIDR(fund.revenue) : "Data tidak tersedia";
+        $('fRevGrowth').innerText = fund ? pctRaw(fund.revGrowth) : "Data tidak tersedia";
+        $('fNetProfit').innerText = fund ? bigIDR(fund.netIncome) : "Data tidak tersedia";
+        $('fEarnGrowth').innerText = fund ? pctRaw(fund.earnGrowth) : "Data tidak tersedia";
+        $('fEps').innerText = fund ? num(fund.eps) : "Data tidak tersedia";
+        $('fRoe').innerText = fund ? pctRaw(fund.roe) : "Data tidak tersedia";
+        $('fDer').innerText = fund ? pctRaw(fund.der) : "Data tidak tersedia";
+        $('fPer').innerText = fund ? num(fund.per) : "Data tidak tersedia";
+        $('fPbv').innerText = fund ? num(fund.pbv) : "Data tidak tersedia";
+        $('fMcap').innerText = fund ? bigIDR(fund.marketCap) : "Data tidak tersedia";
+        $('fFcf').innerText = fund ? bigIDR(fund.fcf) : "Data tidak tersedia";
+        $('fDiv').innerText = fund ? pctRaw(fund.divYield) : "Data tidak tersedia";
+        $('fundPill').innerText = fund ? ("Sumber: " + fund.source) : "Data tidak tersedia";
+        const r = m.risk;
+        $('rEntry').innerText = rp(r.entryLow) + " – " + rp(r.entryHigh);
+        $('rSl').innerText = rp(r.sl); $('rTp1').innerText = rp(r.tp1); $('rTp2').innerText = rp(r.tp2);
+        $('rRr').innerText = r.rr === null ? "Data tidak tersedia" : "1 : " + r.rr.toFixed(2);
+        $('rPct').innerText = r.riskPct === null ? "Data tidak tersedia" : r.riskPct.toFixed(1) + "%";
+        $('rAtr').innerText = r.atrPct.toFixed(1) + "%";
+        $('rReversal').innerText = m.reversal;
+        $('resultContainer').classList.remove('hidden');
+        $('emptyState').classList.add('hidden');
+        const techTxt = localTechnical(m), fundTxt = localFundamental(fund), riskTxt = localRisk(m);
+        setChip('agTech','ok'); $('outTech').innerText = techTxt;
+        setChip('agFund','ok'); $('outFund').innerText = fundTxt;
+        setChip('agRisk','ok'); $('outRisk').innerText = riskTxt;
+        setStep('gemini');
+        $('geminiLoading').classList.remove('hidden');
+        $('geminiOutput').innerHTML = "";
+        const ctx = { ticker:t, price:m.last, changePct:m.chPct.toFixed(2), volume:m.volume, rsi:m.rsi ? m.rsi.toFixed(1) : null, macd:m.macd !== null ? m.macd.toFixed(2) : null, ma20:m.ma20 ? Math.round(m.ma20) : null, ma50:m.ma50 ? Math.round(m.ma50) : null, ma200:m.ma200 ? Math.round(m.ma200) : null, support:m.support, resistance:m.resistance, atr:m.atr, atrPct:r.atrPct.toFixed(1), trend:m.trend, breakout:m.breakout, momentum:m.momentum, reversal:m.reversal, risk:r, fund:fund, last:m.last };
+        const master = await runMaster(ctx, fund, techTxt, fundTxt, riskTxt);
+        $('geminiOutput').innerHTML = `<div class="formatted-kv">${esc(master.text)}</div>`;
+        $('geminiLoading').classList.add('hidden');
+      } catch (err) {
+        console.error(err);
+        $('geminiLoading').classList.add('hidden');
+        alert("Gagal memproses saham: " + err.message);
+      }
+    }
+    function copyReport() { navigator.clipboard.writeText($('geminiOutput').innerText).then(() => alert("Laporan Master disalin!")).catch(() => alert("Gagal menyalin.")); }
+
+    async function runBridgeTest() {
+      const lines = [];
+      if (!GAS_PROXY) { alert("GAS_PROXY kosong."); return; }
+      try { const r = await fetchWithTimeout(GAS_PROXY, 20000); const j = await r.json(); lines.push("✅ GET proxy: OK" + (j.version ? " (" + j.version + ")" : "")); } catch (e) { lines.push("❌ GET proxy: " + e.message); }
+      try { const r = await fetchWithTimeout(GAS_PROXY + "?fund=BBCA.JK", 25000); const j = await r.json(); if (j && !j.error && (hasVal(j.per) || hasVal(j.pbv))) lines.push("✅ Yahoo crumb: OK (PER " + (j.per === null ? "-" : j.per.toFixed(1)) + ")"); else lines.push("⚠️ Yahoo crumb: " + (j && j.error ? j.error : "kosong")); } catch (e) { lines.push("❌ Yahoo crumb: " + e.message); }
+      try { const r = await fetchWithTimeout(GAS_PROXY + "?tv=BBCA", 25000); const j = await r.json(); if (j && !j.error && hasVal(j.price)) lines.push("✅ TradingView: OK (@ " + Math.round(j.price).toLocaleString('id-ID') + ")"); else lines.push("⚠️ TradingView: " + (j && j.error ? j.error : "kosong")); } catch (e) { lines.push("❌ TradingView: " + e.message); }
+      try {
+        let ok = false, lastMsg = "";
+        for (const model of QWEN_MODELS) {
+          for (let attempt = 1; attempt <= 2 && !ok; attempt++) {
+            const r = await fetch(GAS_PROXY, { method:"POST", headers:{ "Content-Type":"text/plain;charset=utf-8" }, body: JSON.stringify({ model: model, messages:[{ role:"user", content:"ping" }] }) });
+            if (r.status === 405) { lastMsg = "405 → doPost belum di-deploy."; break; }
+            const text = await r.text();
+            if (text.trim().startsWith("<")) { lastMsg = "balasan HTML."; break; }
+            let j; try { j = JSON.parse(text); } catch(_) { lastMsg = "bukan JSON."; break; }
+            if (j.error) { const code = (j.error && j.error.code) || null; if (code === 429) { lastMsg = "⏳ 429 rate-limit sementara."; if (attempt === 1) { await new Promise(res => setTimeout(res, 8000)); continue; } break; } if (String(j.error).includes("LLM_KEY")) { lastMsg = "🟡 Bridge AKTIF, isi LLM_KEY."; break; } lastMsg = String(j.error.message || JSON.stringify(j.error)); break; }
+            if (j.choices) { lines.push("✅ Bridge Qwen: SIAP via " + model + "."); ok = true; break; }
+            lastMsg = "JSON tak dikenal."; break;
+          }
+          if (ok) break;
+        }
+        if (!ok) lines.push("⚠️ Bridge Qwen: " + lastMsg);
+      } catch (e) { lines.push("❌ Bridge Qwen: " + e.message); }
+      alert("HASIL TES:\n\n" + lines.join("\n\n"));
+    }
+
+    async function loadMarket(force) {
+      const cache = (() => { try { return JSON.parse(localStorage.getItem('mkt_cache')); } catch(_) { return null; } })();
+      if (!force && cache && (Date.now() - cache.t) < MARKET_TTL) return renderMarket(cache.data);
+      $('mktPrice').innerText = "Memuat...";
+      const symbols = ["^JKSE", ...Object.keys(SECTOR_MAP)];
+      const settled = await Promise.allSettled(symbols.map(s => fetchChart(s, "5d")));
+      const rows = []; const got = {};
+      settled.forEach((res, i) => { if (res.status !== 'fulfilled') return; const meta = res.value?.chart?.result?.[0]?.meta; if (!meta) return; const price = meta.regularMarketPrice, prev = meta.chartPreviousClose; if (!price || !prev) return; got[symbols[i]] = true; rows.push({ symbol: symbols[i], sector: SECTOR_MAP[symbols[i]] || null, price, chPct: ((price - prev) / prev) * 100, volume: meta.regularMarketVolume || 0 }); });
+      for (const s of symbols) { if (got[s]) continue; const code = s === "^JKSE" ? "COMPOSITE" : s; const f = await tvSnapshot(code); if (f) rows.push({ symbol: s, sector: SECTOR_MAP[s] || null, price: f.price, chPct: f.changePct || 0, volume: f.volume || 0 }); }
+      if (!rows.length) { $('mktPrice').innerText = "Data tidak tersedia"; return; }
+      const data = { t: Date.now(), rows };
+      try { localStorage.setItem('mkt_cache', JSON.stringify(data)); } catch(_){}
+      renderMarket(data);
+    }
+    function renderMarket(cache) {
+      const rows = cache.rows;
+      const ihsg = rows.find(r => r.symbol === "^JKSE");
+      if (ihsg) { $('mktPrice').innerText = Math.round(ihsg.price).toLocaleString('id-ID'); const c = $('mktChange'); c.innerText = (ihsg.chPct >= 0 ? "+" : "") + ihsg.chPct.toFixed(2) + "%"; c.className = "price-change " + (ihsg.chPct >= 0 ? 'green' : 'red'); }
+      else $('mktPrice').innerText = "Data tidak tersedia";
+      $('mktTime').innerText = "Diperbarui: " + new Date(cache.t).toLocaleString('id-ID');
+      const bySec = {};
+      rows.filter(r => r.sector).forEach(r => { (bySec[r.sector] = bySec[r.sector] || []).push(r.chPct); });
+      const secs = Object.entries(bySec).map(([name, arr]) => ({ name, avg: arr.reduce((a,b)=>a+b,0)/arr.length })).sort((a,b)=>b.avg-a.avg);
+      $('sectorList').innerHTML = secs.length ? secs.map(s => `<div class="mkt-row"><span>${s.name}</span><span class="${s.avg >= 0 ? 'green' : 'red'}" style="font-weight:700;">${s.avg >= 0 ? '+' : ''}${s.avg.toFixed(2)}%</span></div>`).join('') : '<div style="font-size:0.78rem;color:var(--text-muted);">Data tidak tersedia</div>';
+      const top = rows.filter(r => r.sector).sort((a,b)=>b.volume-a.volume).slice(0,5);
+      $('volumeList').innerHTML = top.length ? top.map(r => `<div class="mkt-row"><span><strong>${r.symbol}</strong> <span style="color:var(--text-muted);font-size:0.7rem;">${volIDR(r.volume)}</span></span><span class="${r.chPct >= 0 ? 'green' : 'red'}" style="font-weight:700;">${r.chPct >= 0 ? '+' : ''}${r.chPct.toFixed(2)}%</span></div>`).join('') : '<div style="font-size:0.78rem;color:var(--text-muted);">Data tidak tersedia</div>';
+    }
+
+    function addToWatchlistCurrent() {
+      if (!currentTicker) return;
+      if (!watchlist.includes(currentTicker)) { watchlist.push(currentTicker); localStorage.setItem('gemini_ihsg_watchlist', JSON.stringify(watchlist)); alert(currentTicker + " disimpan ke Watchlist!"); }
+      else alert(currentTicker + " sudah ada di Watchlist.");
+    }
+    function removeFromWatchlist(t) { watchlist = watchlist.filter(x => x !== t); localStorage.setItem('gemini_ihsg_watchlist', JSON.stringify(watchlist)); renderWatchlist(); }
+    function renderWatchlist() {
+      const c = $('watchlistContainer'); $('watchlistCount').innerText = watchlist.length + " Saham"; c.innerHTML = "";
+      if (!watchlist.length) { c.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-muted);font-size:0.8rem;">Watchlist kosong.</div>'; return; }
+      watchlist.forEach(t => {
+        const cache = loadCache(t);
+        let priceTxt = "—", chTxt = "";
+        if (cache?.json?.chart?.result?.[0]?.meta) { const m = cache.json.chart.result[0].meta; priceTxt = rp(m.regularMarketPrice); const prev = m.chartPreviousClose; if (prev) { const p = ((m.regularMarketPrice - prev)/prev)*100; chTxt = ` <span class="${p>=0?'green':'red'}">(${p>=0?'+':''}${p.toFixed(1)}%)</span>`; } }
+        const item = document.createElement('div');
+        item.style.cssText = "display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--card-border);";
+        item.innerHTML = `<div onclick="quickSelect('${t}'); switchTab('analysis');" style="cursor:pointer;"><strong style="font-size:1rem;color:#fff;">${t}</strong> <span style="font-size:0.75rem;color:var(--text-muted);">${priceTxt}${chTxt}</span><div style="font-size:0.68rem;color:var(--text-muted);">Ketuk untuk analisis multi-agent</div></div><button style="background:none;border:none;color:var(--red);font-size:1.1rem;cursor:pointer;" onclick="removeFromWatchlist('${t}')">✕</button>`;
+        c.appendChild(item);
+      });
+    }
+
+    /* ===== MOTION JS v6.2 (terintegrasi) ===== */
+    (function () {
+      document.querySelectorAll('header strong').forEach(el => { el.innerText = 'Build v6.2'; });
+      const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      function countUp(el, toNum, fmt) { const from = el._v || 0; el._anim = true; const t0 = performance.now(), dur = 700; function step(t) { const p = Math.min(1, (t - t0) / dur); const e = 1 - Math.pow(1 - p, 3); el.innerText = fmt(Math.round(from + (toNum - from) * e)); if (p < 1) requestAnimationFrame(step); else { el._v = toNum; el._anim = false; } } requestAnimationFrame(step); }
+      function flash(el) { el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash'); }
+      const obs = new MutationObserver(muts => { muts.forEach(m => { const el = (m.target.nodeType === 3) ? m.target.parentElement : m.target; if (!el || !el.classList || el._anim) return; if (el.id === 'displayPrice' || el.id === 'mktPrice') { const n = parseInt(String(el.innerText).replace(/\D/g, ''), 10); const isRupiah = (el.id === 'displayPrice'); if (!isNaN(n) && n > 0 && el._v !== n) countUp(el, n, v => isRupiah ? ('Rp ' + v.toLocaleString('id-ID')) : v.toLocaleString('id-ID')); flash(el); } else if (el.classList.contains('metric-value')) { flash(el); } }); });
+      obs.observe(document.body, { subtree: true, childList: true, characterData: true });
+      // Scroll progress
+      if (!prefersReduced) {
+        const bar = document.createElement('div'); bar.className = 'scroll-prog'; document.body.insertBefore(bar, document.body.firstChild);
+        const upd = () => { const h = document.documentElement.scrollHeight - window.innerHeight; bar.style.width = (h > 0 ? (window.scrollY / h) * 100 : 0) + '%'; };
+        window.addEventListener('scroll', upd, { passive: true }); upd();
+        // Ticker tape (jam bursa WIB)
+        const wrap = document.createElement('div'); wrap.className = 'ticker-wrap'; document.body.insertBefore(wrap, document.body.firstChild);
+        const renderTicker = items => { if (!items.length) return; const html = items.map(i => { const cls = i.chg >= 0 ? 'ticker-up' : 'ticker-down'; const arrow = i.chg >= 0 ? '▲' : '▼'; return `<span class="ticker-item"><span class="ticker-code">${i.code}</span><span class="ticker-price">Rp ${Math.round(i.price).toLocaleString('id-ID')}</span><span class="${cls}">${arrow} ${Math.abs(i.chg).toFixed(1)}%</span></span>`; }).join(''); wrap.innerHTML = `<div class="ticker-track">${html}${html}</div>`; wrap.classList.add('active'); document.body.classList.add('has-ticker'); };
+        const updTicker = () => { const wib = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Jakarta' })); const day = wib.getDay(), hour = wib.getHours(); const isOpen = (day >= 1 && day <= 5) && (hour >= 9 && hour < 16); if (!isOpen) { wrap.classList.remove('active'); document.body.classList.remove('has-ticker'); return; } const items = []; ['BBCA','BBRI','BMRI','TLKM','ASII','UNVR','ANTM','PTBA','GOTO','ADMR','NCKL'].forEach(code => { const c = localStorage.getItem('cache_' + code); if (c) { try { const d = JSON.parse(c); const meta = d.json?.chart?.result?.[0]?.meta; if (meta && meta.regularMarketPrice) { const prev = meta.chartPreviousClose || meta.regularMarketPrice; items.push({ code, price: meta.regularMarketPrice, chg: ((meta.regularMarketPrice - prev) / prev) * 100 }); } } catch(_){} } }); renderTicker(items); };
+        updTicker(); setInterval(updTicker, 60000);
+        // Confetti saat grade A
+        const triggerConfetti = () => { const w = document.createElement('div'); w.className = 'confetti-wrap'; document.body.appendChild(w); const colors = ['#fbbf24','#f59e0b','#fcd34d','#22c55e','#38bdf8','#c084fc']; for (let i = 0; i < 80; i++) { const p = document.createElement('div'); p.className = 'confetti-particle'; p.style.left = Math.random()*100 + '%'; p.style.background = colors[Math.floor(Math.random()*colors.length)]; p.style.animationDelay = Math.random()*0.5 + 's'; p.style.animationDuration = (2.5 + Math.random()) + 's'; w.appendChild(p); } if (navigator.vibrate) navigator.vibrate([50,30,50]); setTimeout(() => w.remove(), 3500); };
+        const cObs = new MutationObserver(muts => { muts.forEach(m => { const el = m.target; if (el.classList && el.classList.contains('health-A') && !el._fired) { el._fired = true; setTimeout(triggerConfetti, 300); } }); });
+        cObs.observe(document.body, { subtree: true, attributes: true, attributeFilter: ['class'] });
+        // Card 3D tilt
+        const setup3D = () => { document.querySelectorAll('.card:not(._tilted)').forEach(card => { card.classList.add('_tilted','card-3d'); card.addEventListener('pointermove', e => { const rect = card.getBoundingClientRect(); const x = e.clientX - rect.left, y = e.clientY - rect.top; const rotX = ((y - rect.height/2) / (rect.height/2)) * -2; const rotY = ((x - rect.width/2) / (rect.width/2)) * 2; card.style.transform = `perspective(800px) rotateX(${rotX}deg) rotateY(${rotY}deg) scale(1.01)`; }); card.addEventListener('pointerleave', () => { card.style.transform = ''; }); }); };
+        const tObs = new MutationObserver(() => setTimeout(setup3D, 400));
+        tObs.observe(document.querySelector('.container'), { childList: true, subtree: true });
+        setTimeout(setup3D, 800);
+      }
+    })();
+
+    window.onload = () => { updateKeyButtonState(); updateEngineUI(); };
+  </script>
+</body>
+</html>
