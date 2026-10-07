@@ -209,11 +209,13 @@
         d.textContent = msg;
         document.body.appendChild(d);
       }
-      window.addEventListener('error', function (e) {
+            window.addEventListener('error', function (e) {
         var s = document.getElementById('splash');
         if (s && !s.classList.contains('gone')) s.classList.add('gone');
-        banner('⚠️ Script error: ' + (e.message || 'tidak diketahui') + ' — periksa kelengkapan file.');
+        if (!e.message || e.message === 'Script error.') return;
+        banner('⚠️ Script error: ' + e.message + ' — periksa kelengkapan file.');
       }, true);
+
       setTimeout(function () {
         var s = document.getElementById('splash');
         if (s && !s.classList.contains('gone')) {
