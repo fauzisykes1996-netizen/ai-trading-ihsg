@@ -21,7 +21,7 @@
     }
   };
   function loadAll() {
-    ['bsjp.js', 'quant.js', 'compare.js', 'friendly.js', 'swing.js', 'swingtools.js', 'polish.js']
+    ['bsjp.js', 'quant.js', 'compare.js', 'friendly.js', 'swing.js']
 .forEach(function (f) {
       var s = document.createElement('script');
       s.src = f;
