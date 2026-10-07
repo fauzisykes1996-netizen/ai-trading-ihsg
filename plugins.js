@@ -21,7 +21,8 @@
     }
   };
   function loadAll() {
-    ['bsjp.js', 'quant.js', 'compare.js', 'friendly.js'].forEach(function (f) {
+    ['bsjp.js', 'quant.js', 'compare.js', 'friendly.js', 'swing.js', 'swingtools.js', 'polish.js']
+.forEach(function (f) {
       var s = document.createElement('script');
       s.src = f;
       s.onerror = function () { console.warn('Plugin belum terupload (normal saat bertahap): ' + f); };
