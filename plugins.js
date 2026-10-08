@@ -1,4 +1,4 @@
-/* plugins.js — pemuat plugin Build v6.6 (arsitektur modular) */
+/* plugins.js - pemuat plugin Build v6.6 (arsitektur modular) */
 (function () {
   window.P = {
     fee: 0.005,
