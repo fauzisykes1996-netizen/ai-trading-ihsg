@@ -22,7 +22,7 @@
   };
   function loadAll() {
     document.querySelectorAll('header strong').forEach(function (el) { el.innerText = 'Build v6.6'; });
-    var files = ['bsjp.js', 'quant.js', 'compare.js', 'friendly.js', 'swcore.js'];
+    var files = ['bsjp.js', 'quant.js', 'compare.js', 'friendly.js', 'swcore.js', 'swscan.js'];
     for (var i = 0; i < files.length; i++) {
       var s = document.createElement('script');
       s.src = files[i];
