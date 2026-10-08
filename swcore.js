@@ -53,7 +53,7 @@
 
   var tfCard = document.getElementById('tfBadge') ? document.getElementById('tfBadge').closest('.card') : null;
   P.card('tab-analysis',
-    '<div class="card-title"><span>\uD83D\uDCD0 Multi-TF Alignment Score</span><span class="agent-pill tech">Daily x Weekly</span></div>' +
+    '<div class="card-title"><span>📐 Multi-TF Alignment Score</span><span class="agent-pill tech">Daily x Weekly</span></div>' +
     '<div id="mtfOut" style="font-size:0.8rem;color:var(--text-muted);">Proses sebuah saham - skor keselarasan tren harian & mingguan (kompas utama swing).</div>' +
     '<div class="src-note">Skor 0-100. >=70 = arus mendukung swing naik.</div>',
     tfCard);
@@ -72,7 +72,7 @@
   }
 
   P.card('tab-analysis',
-    '<div class="card-title"><span>\uD83D\uDCCA Dashboard Kekuatan Tren</span><span class="agent-pill tech">Swing Compass</span></div>' +
+    '<div class="card-title"><span>📊 Dashboard Kekuatan Tren</span><span class="agent-pill tech">Swing Compass</span></div>' +
     '<div id="trendDash" style="font-size:0.8rem;color:var(--text-muted);">Proses saham - ADX, slope MA, partisipasi harga, volatilitas.</div>',
     document.getElementById('mtfOut') ? document.getElementById('mtfOut').closest('.card') : null);
 
@@ -119,4 +119,4 @@
   });
   if (trendEl) obs.observe(trendEl, { childList: true, characterData: true, subtree: true });
 })();
-/* END swcore v1 */
+/* END swcore v2 */
