@@ -14,9 +14,9 @@
 
   var scrCard = document.getElementById('scrBtn') ? document.getElementById('scrBtn').closest('.card') : null;
   P.card('tab-market',
-    '<div class="card-title"><span>\uD83C\uDF0A Swing Setup Scanner</span><span class="agent-pill tech">Buy-on-Dip dalam Tren</span></div>' +
-    '<button class="btn-copy" style="margin-top:0;" id="swScanBtn" onclick="runSwingScan()">\uD83C\uDF0A Scan Setup Swing</button>' +
-    '<div id="swScanNote" style="font-size:0.7rem;color:var(--text-muted);margin-top:8px;">Filter: harga &gt; MA20 &gt; MA50 \u2022 ADX &gt;= 20 \u2022 RSI 40-65 \u2022 pullback dekat MA20 \u2022 likuid &gt;= Rp10M. Kandidat + skor Multi-TF.</div>' +
+    '<div class="card-title"><span>🌊 Swing Setup Scanner</span><span class="agent-pill tech">Buy-on-Dip dalam Tren</span></div>' +
+    '<button class="btn-copy" style="margin-top:0;" id="swScanBtn" onclick="runSwingScan()">🌊 Scan Setup Swing</button>' +
+    '<div id="swScanNote" style="font-size:0.7rem;color:var(--text-muted);margin-top:8px;">Filter: harga &gt; MA20 &gt; MA50 • ADX &gt;= 20 • RSI 40-65 • pullback dekat MA20 • likuid &gt;= Rp10M. Kandidat + skor Multi-TF.</div>' +
     '<div id="swScanResult" class="hidden" style="margin-top:10px;"></div>',
     scrCard);
 
@@ -61,9 +61,9 @@
       top.forEach(function (rr, i) { rr.mtf = wks[i].status === 'fulfilled' ? SW.tfScore(rr.candle, wks[i].value) : null; });
       saveLS('swscan_cache', { t: Date.now(), rows: top });
       renderScan(top);
-      noteScan('Diperbarui ' + new Date().toLocaleTimeString('id-ID') + ' \u2022 ' + top.length + ' setup swing \u2022 ketuk baris untuk rencana.');
+      noteScan('Diperbarui ' + new Date().toLocaleTimeString('id-ID') + ' • ' + top.length + ' setup swing • ketuk baris untuk rencana.');
     } catch (e) { out.innerHTML = '<div style="color:var(--red);">Scan swing gagal: ' + esc(e.message) + '</div>'; }
-    finally { btn.disabled = false; btn.innerText = '\uD83C\uDF0A Scan Setup Swing'; }
+    finally { btn.disabled = false; btn.innerText = '🌊 Scan Setup Swing'; }
   };
 
   function renderScan(rows) {
@@ -73,11 +73,11 @@
     var html = '';
     for (var i = 0; i < rows.length; i++) {
       var r = rows[i];
-      var badge = r.score >= 7 ? '\uD83D\uDD25' : (r.score >= 5 ? '\uD83D\uDC4D' : '\u2022');
-      var mtfSpan = r.mtf != null ? ' <span class="' + (r.mtf >= 70 ? 'green' : (r.mtf >= 45 ? 'yellow' : 'red')) + '">\u2022 MTF ' + r.mtf + '</span>' : '';
+      var badge = r.score >= 7 ? '🔥' : (r.score >= 5 ? '👍' : '•');
+      var mtfSpan = r.mtf != null ? ' <span class="' + (r.mtf >= 70 ? 'green' : (r.mtf >= 45 ? 'yellow' : 'red')) + '">• MTF ' + r.mtf + '</span>' : '';
       html += '<div class="mkt-row" style="cursor:pointer;" onclick="swingPlanFromScan(' + i + ')">';
       html += '<span><strong>' + r.code + '</strong> <span style="color:var(--text-muted);font-size:0.68rem;">' + badge + ' skor ' + r.score + mtfSpan + '</span><br>';
-      html += '<span style="font-size:0.66rem;color:#64748b;font-family:var(--mono);">ADX ' + r.adx.toFixed(0) + ' \u2022 RSI ' + r.rsi.toFixed(0) + ' \u2022 dist MA20 ' + (r.dist >= 0 ? '+' : '') + r.dist.toFixed(1) + '% \u2022 ATR ' + r.atrpct.toFixed(1) + '%</span></span>';
+      html += '<span style="font-size:0.66rem;color:#64748b;font-family:var(--mono);">ADX ' + r.adx.toFixed(0) + ' • RSI ' + r.rsi.toFixed(0) + ' • dist MA20 ' + (r.dist >= 0 ? '+' : '') + r.dist.toFixed(1) + '% • ATR ' + r.atrpct.toFixed(1) + '%</span></span>';
       html += '<span style="text-align:right;"><span style="font-weight:700;font-family:var(--mono);">' + Math.round(r.price).toLocaleString('id-ID') + '</span><br>';
       html += '<span class="' + (r.chg >= 0 ? 'green' : 'red') + '" style="font-size:0.7rem;font-weight:700;font-family:var(--mono);">' + (r.chg >= 0 ? '+' : '') + r.chg.toFixed(2) + '%</span></span></div>';
     }
@@ -87,10 +87,10 @@
 
   var riskCard = document.getElementById('rRr') ? document.getElementById('rRr').closest('.card') : null;
   P.card('tab-analysis',
-    '<div class="card-title"><span>\uD83E\uDDFE Kartu Swing Plan</span><span class="agent-pill master">Scale-Out</span></div>' +
+    '<div class="card-title"><span>🧾 Kartu Swing Plan</span><span class="agent-pill master">Scale-Out</span></div>' +
     '<div id="swPlan" class="report-card" style="margin-top:0;"><div style="color:var(--text-muted);font-size:0.78rem;">Proses saham atau ketuk baris Swing Scanner - rencana bertahap (T1/T2/T3 + trailing) terisi otomatis & siap cetak.</div></div>' +
-    '<button class="btn-copy" onclick="printSwPlan()">\uD83D\uDDA8 Cetak / Simpan PDF</button>' +
-    '<button class="btn-copy" onclick="copySwPlan()">\uD83D\uDCCB Salin Plan</button>',
+    '<button class="btn-copy" onclick="printSwPlan()">🖨 Cetak / Simpan PDF</button>' +
+    '<button class="btn-copy" onclick="copySwPlan()">📋 Salin Plan</button>',
     riskCard);
 
   window.printSwPlan = function () {
@@ -121,14 +121,14 @@
     var be = p.entry + (p.entry - p.sl) * 0.5;
     var h = '';
     h += '<div style="font-weight:800;color:#fff;font-size:0.95rem;">SWING PLAN - ' + p.code + '.JK</div>';
-    h += '<div style="font-size:0.68rem;color:var(--text-muted);margin-bottom:8px;">' + p.date + ' \u2022 Setup: ' + p.setup + ' \u2022 Multi-TF ' + (p.mtf != null ? p.mtf + '/100' : '-') + ' \u2022 ATR ' + p.atrpct + '%</div>';
-    h += '<div class="rp-line">\u2022 TESIS: ' + p.thesis + '</div>';
-    h += '<div class="rp-line">\u2022 ENTRY: zona ' + rp(p.zoneLo) + ' - ' + rp(p.zoneHi) + ' (pullback ke nilai dalam tren)</div>';
-    h += '<div class="rp-line">\u2022 STOP LOSS: ' + rp(p.sl) + ' (' + p.slNote + ') - invalidasi tesis, keluar tanpa negosiasi</div>';
-    h += '<div class="rp-line">\u2022 TARGET BERTAHAP: T1 ' + rp(p.t1) + ' (jual 50%, ~' + l1 + ' lot) \u2022 T2 ' + rp(p.t2) + ' (jual 30%, ~' + l2 + ' lot) \u2022 T3 ' + rp(p.t3) + ' (20% runner, ~' + l3 + ' lot)</div>';
-    h += '<div class="rp-line">\u2022 TRAILING: setelah T1 tembus, geser SL ke break-even ~ ' + rp(be) + '; lalu trail 1,5xATR (' + rp(p.atr * 1.5) + ') di bawah highest high</div>';
-    h += '<div class="rp-line">\u2022 HOLD: estimasi ' + p.hold + ' hari \u2022 R/R ke T2 ~ 1:' + p.rr.toFixed(1) + '</div>';
-    h += '<div class="rp-line">\u2022 RISIKO: maks 1-2% modal pada risiko awal (entry ke SL)</div>';
+    h += '<div style="font-size:0.68rem;color:var(--text-muted);margin-bottom:8px;">' + p.date + ' • Setup: ' + p.setup + ' • Multi-TF ' + (p.mtf != null ? p.mtf + '/100' : '-') + ' • ATR ' + p.atrpct + '%</div>';
+    h += '<div class="rp-line">• TESIS: ' + p.thesis + '</div>';
+    h += '<div class="rp-line">• ENTRY: zona ' + rp(p.zoneLo) + ' - ' + rp(p.zoneHi) + ' (pullback ke nilai dalam tren)</div>';
+    h += '<div class="rp-line">• STOP LOSS: ' + rp(p.sl) + ' (' + p.slNote + ') - invalidasi tesis, keluar tanpa negosiasi</div>';
+    h += '<div class="rp-line">• TARGET BERTAHAP: T1 ' + rp(p.t1) + ' (jual 50%, ~' + l1 + ' lot) • T2 ' + rp(p.t2) + ' (jual 30%, ~' + l2 + ' lot) • T3 ' + rp(p.t3) + ' (20% runner, ~' + l3 + ' lot)</div>';
+    h += '<div class="rp-line">• TRAILING: setelah T1 tembus, geser SL ke break-even ~ ' + rp(be) + '; lalu trail 1,5xATR (' + rp(p.atr * 1.5) + ') di bawah highest high</div>';
+    h += '<div class="rp-line">• HOLD: estimasi ' + p.hold + ' hari • R/R ke T2 ~ 1:' + p.rr.toFixed(1) + '</div>';
+    h += '<div class="rp-line">• RISIKO: maks 1-2% modal pada risiko awal (entry ke SL)</div>';
     h += '<div style="font-size:0.64rem;color:#64748b;margin-top:8px;">Rencana disiplin, bukan prediksi. Tesis bisa salah - yang dijaga adalah ukuran kerugian per trade.</div>';
     return h;
   }
@@ -153,4 +153,4 @@
   var trendEl = document.getElementById('valTrend');
   if (trendEl) planObs.observe(trendEl, { childList: true, characterData: true, subtree: true });
 })();
-/* END swscan v1 */
+/* END swscan v2 */
