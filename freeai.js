@@ -1,16 +1,8 @@
-/* freeai.js v3 - Free Fleet: daftar model gratis HIDUP (auto-refresh OpenRouter) + Pollinations + Puter */
+/* freeai.js v4 - Free Fleet: OpenRouter gratis (auto-refresh) + Puter (auto-refresh), tanpa model mati */
 (function () {
   if (!window.P) return;
 
-  var STATIC_FALLBACK = [
-    { id: 'pol:deepseek', label: '🌸 Pollinations DeepSeek (no-key)' },
-    { id: 'pol:openai', label: '🌸 Pollinations OpenAI (no-key)' },
-    { id: 'pol:mistral', label: '🌸 Pollinations Mistral (no-key)' },
-    { id: 'put:gpt-4o-mini', label: '🪁 Puter GPT-4o mini (no-key)' },
-    { id: 'put:deepseek-v3', label: '🪁 Puter DeepSeek V3 (no-key)' },
-    { id: 'put:claude-sonnet-4', label: '🪁 Puter Claude Sonnet (no-key)' }
-  ];
-  var FLEET = STATIC_FALLBACK.slice();
+  var FLEET = [{ id: 'put:gpt-4o-mini', label: '🪁 Puter GPT-4o mini (no-key)' }];
 
   (function () {
     var st = document.createElement('style');
@@ -44,13 +36,7 @@
     }
     throw lastErr || new Error('OpenRouter gagal.');
   }
-  async function polCallMsgs(msgs, model) {
-    var r = await fetch('https://text.pollinations.ai/', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ messages: msgs, model: model }) });
-    if (!r.ok) throw new Error('Pollinations HTTP ' + r.status);
-    var t = await r.text();
-    if (!t || t.length < 2) throw new Error('Pollinations balasan kosong');
-    return t;
-  }
+
   function loadPuter() {
     if (window.puter) return Promise.resolve();
     if (loadPuter._p) return loadPuter._p;
@@ -82,7 +68,6 @@
     var prov = value.slice(0, idx);
     var model = value.slice(idx + 1);
     if (prov === 'or') return orCallMsgs(msgs, model);
-    if (prov === 'pol') return polCallMsgs(msgs, model);
     if (prov === 'put') return putCallMsgs(msgs, model);
     throw new Error('Provider tidak dikenal');
   }
@@ -101,26 +86,52 @@
   }
 
   var ready = (async function () {
+    var orList = [];
+    var putList = [];
     try {
-      if (!GAS_PROXY) return;
-      var r = await fetch(GAS_PROXY + '?url=' + encodeURIComponent('https://openrouter.ai/api/v1/models'));
-      if (!r.ok) return;
-      var wrap = JSON.parse(await r.text());
-      var body = wrap && wrap.body ? wrap.body : null;
-      if (!body) return;
-      var j = JSON.parse(body);
-      if (!j || !j.data) return;
-      var free = [];
-      for (var i = 0; i < j.data.length; i++) {
-        var m = j.data[i];
-        if (m && m.id && m.pricing && parseFloat(m.pricing.prompt) === 0 && parseFloat(m.pricing.completion) === 0) free.push(m);
+      if (GAS_PROXY) {
+        var r = await fetch(GAS_PROXY + '?url=' + encodeURIComponent('https://openrouter.ai/api/v1/models'));
+        if (r.ok) {
+          var wrap = JSON.parse(await r.text());
+          var body = wrap && wrap.body ? wrap.body : null;
+          if (body) {
+            var j = JSON.parse(body);
+            if (j && j.data) {
+              var free = [];
+              for (var i = 0; i < j.data.length; i++) {
+                var m = j.data[i];
+                if (m && m.id && m.pricing && parseFloat(m.pricing.prompt) === 0 && parseFloat(m.pricing.completion) === 0) free.push(m);
+              }
+              free.sort(function (a, b) { return (b.context_length || 0) - (a.context_length || 0); });
+              for (var k = 0; k < free.length && orList.length < 10; k++) orList.push({ id: 'or:' + free[k].id, label: '🆓 ' + free[k].name + ' (OR gratis)' });
+            }
+          }
+        }
       }
-      free.sort(function (a, b) { return (b.context_length || 0) - (a.context_length || 0); });
-      var orList = [];
-      for (var k = 0; k < free.length && orList.length < 10; k++) orList.push({ id: 'or:' + free[k].id, label: '🆓 ' + free[k].name + ' (OR gratis)' });
-      if (orList.length) FLEET = orList.concat(STATIC_FALLBACK);
-      rebuild();
     } catch (e) {}
+    try {
+      await loadPuter();
+      if (window.puter && window.puter.ai && typeof window.puter.ai.models === 'function') {
+        var models = await window.puter.ai.models();
+        var arr = Array.isArray(models) ? models : (models && models.data ? models.data : []);
+        var want = ['gpt-4o-mini', 'gpt-5-nano', 'deepseek-v3.2', 'claude-haiku-4-5', 'gemini-2.5-flash', 'llama-3.3-70b'];
+        for (var w = 0; w < want.length; w++) {
+          for (var a = 0; a < arr.length; a++) {
+            var id = arr[a] && (arr[a].id || arr[a].name || '');
+            if (id && id.toLowerCase().indexOf(want[w]) !== -1) { putList.push({ id: 'put:' + id, label: '🪁 Puter ' + id + ' (no-key)' }); break; }
+          }
+        }
+        if (!putList.length && arr.length) {
+          for (var p = 0; p < arr.length && putList.length < 6; p++) {
+            var pid = arr[p] && (arr[p].id || arr[p].name || '');
+            if (pid) putList.push({ id: 'put:' + pid, label: '🪁 Puter ' + pid + ' (no-key)' });
+          }
+        }
+      }
+    } catch (e2) {}
+    FLEET = orList.concat(putList.length ? putList : [{ id: 'put:gpt-4o-mini', label: '🪁 Puter GPT-4o mini (no-key)' }]);
+    if (!FLEET.length) FLEET = [{ id: 'put:gpt-4o-mini', label: '🪁 Puter GPT-4o mini (no-key)' }];
+    rebuild();
   })();
 
   window.FF = { models: function () { return FLEET.slice(); }, ready: ready, callMsgs: callMsgs, callPrompt: callPrompt };
@@ -146,10 +157,10 @@
     if (getEngine() !== 'freeai') return origCallLLM(prompt);
     var sel = document.getElementById('freeModel');
     var chosen = sel ? sel.value : FLEET[0].id;
-    var chain = [chosen, 'pol:openai', 'put:gpt-4o-mini'];
+    var chain = [chosen];
+    for (var f = 0; f < FLEET.length && chain.length < 4; f++) { if (FLEET[f].id !== chosen) chain.push(FLEET[f].id); }
     var lastErr = null;
     for (var i = 0; i < chain.length; i++) {
-      if (i > 0 && chain[i] === chosen) continue;
       try { return await callPrompt(prompt, chain[i]); } catch (e) { lastErr = e; }
     }
     throw lastErr || new Error('Semua mesin gratis gagal.');
@@ -169,4 +180,4 @@
   };
   window.updateEngineUI();
 })();
-/* END freeai v3 */
+/* END freeai v4 */
