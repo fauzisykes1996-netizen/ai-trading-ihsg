@@ -1,22 +1,6 @@
-/* aichat.js - Plugin Chat AI (Build v6.7): ngobrol dengan 13 mesin (11 fleet gratis + Gemini + Qwen) */
+/* aichat.js v3 - Chat AI Multi-Mesin: memakai daftar model hidup dari freeai.js (FF) + Gemini/Qwen */
 (function () {
   if (!window.P) return;
-
-  var CHAT_MODELS = [
-    { id: 'or:deepseek/deepseek-chat-v3-0324:free', label: '🧠 DeepSeek V3 (gratis)' },
-    { id: 'or:deepseek/deepseek-r1:free', label: '🧠 DeepSeek R1 (gratis)' },
-    { id: 'or:meta-llama/llama-3.3-70b-instruct:free', label: '🦙 Llama 3.3 70B (gratis)' },
-    { id: 'or:google/gemma-3-27b-it:free', label: '🔮 Gemma 3 27B (gratis)' },
-    { id: 'or:mistralai/mistral-7b-instruct:free', label: '🌬 Mistral 7B (gratis)' },
-    { id: 'pol:deepseek', label: '🌸 Pollinations DeepSeek' },
-    { id: 'pol:openai', label: '🌸 Pollinations OpenAI' },
-    { id: 'pol:mistral', label: '🌸 Pollinations Mistral' },
-    { id: 'put:gpt-4o-mini', label: '🪁 Puter GPT-4o mini' },
-    { id: 'put:deepseek-v3', label: '🪁 Puter DeepSeek V3' },
-    { id: 'put:claude-sonnet-4', label: '🪁 Puter Claude Sonnet' },
-    { id: 'core:gemini', label: '✨ Gemini (key Anda)' },
-    { id: 'core:qwen', label: '🤖 Qwen (bridge)' }
-  ];
 
   (function () {
     var st = document.createElement('style');
@@ -26,10 +10,31 @@
 
   var hist = lsJSON('ihsg_chat_log', []);
 
+  function coreModels() {
+    return [
+      { id: 'core:gemini', label: '✨ Gemini (key Anda)' },
+      { id: 'core:qwen', label: '🤖 Qwen (bridge)' }
+    ];
+  }
+  function buildModels() {
+    var list = window.FF ? window.FF.models() : [
+      { id: 'pol:openai', label: '🌸 Pollinations OpenAI' },
+      { id: 'put:gpt-4o-mini', label: '🪁 Puter GPT-4o mini' }
+    ];
+    return list.concat(coreModels());
+  }
+  var CHAT_MODELS = buildModels();
   function labelOf(id) { for (var k = 0; k < CHAT_MODELS.length; k++) if (CHAT_MODELS[k].id === id) return CHAT_MODELS[k].label; return id; }
   function save() { saveLS('ihsg_chat_log', hist); }
 
-  window.openChat = function () { panel.style.display = 'flex'; renderMsgs(); setTimeout(function () { var inp = document.getElementById('chatInput'); if (inp) inp.focus(); }, 150); };
+  window.openChat = function () {
+    panel.style.display = 'flex';
+    renderMsgs();
+    setTimeout(function () { var inp = document.getElementById('chatInput'); if (inp) inp.focus(); }, 150);
+    if (window.FF && window.FF.ready) {
+      window.FF.ready.then(function () { CHAT_MODELS = buildModels(); rebuildSel(); });
+    }
+  };
   window.closeChat = function () { panel.style.display = 'none'; };
   window.clearChat = function () { hist = []; save(); renderMsgs(); toast('🗑 Percakapan dibersihkan.'); };
 
@@ -55,10 +60,15 @@
   document.body.appendChild(panel);
 
   var sel = document.getElementById('chatModel');
-  var opts = '';
-  for (var i = 0; i < CHAT_MODELS.length; i++) opts += '<option value="' + CHAT_MODELS[i].id + '">' + CHAT_MODELS[i].label + '</option>';
-  sel.innerHTML = opts;
-  sel.value = localStorage.getItem('ihsg_chat_model') || CHAT_MODELS[0].id;
+  function rebuildSel() {
+    var opts = '';
+    for (var i = 0; i < CHAT_MODELS.length; i++) opts += '<option value="' + CHAT_MODELS[i].id + '">' + CHAT_MODELS[i].label + '</option>';
+    sel.innerHTML = opts;
+    var saved = localStorage.getItem('ihsg_chat_model');
+    sel.value = saved || CHAT_MODELS[0].id;
+    if (!sel.value) sel.value = CHAT_MODELS[0].id;
+  }
+  rebuildSel();
   sel.onchange = function () { localStorage.setItem('ihsg_chat_model', sel.value); toast('💬 Mesin chat: ' + labelOf(sel.value)); };
   document.getElementById('chatInput').addEventListener('keydown', function (e) { if (e.key === 'Enter') window.sendChat(); });
 
@@ -70,7 +80,7 @@
       if (h.role === 'user') html += '<div class="cmsg user">' + esc(h.content) + '</div>';
       else html += '<div class="cmsg ai"><span class="who">' + esc(h.label || 'AI') + '</span>' + esc(h.content) + '</div>';
     }
-    if (!hist.length) html = '<div style="color:var(--text-muted);font-size:0.78rem;text-align:center;padding-top:70px;">Mulai ngobrol: minta analisis, ide swing, penjelasan indikator, atau manajemen risiko.<br>Pilih mesin di bar atas — 13 otak siap diajak diskusi 💬</div>';
+    if (!hist.length) html = '<div style="color:var(--text-muted);font-size:0.78rem;text-align:center;padding-top:70px;">Mulai ngobrol: minta analisis, ide swing, penjelasan indikator, atau manajemen risiko.<br>Pilih mesin di bar atas 💬</div>';
     box.innerHTML = html;
     box.scrollTop = box.scrollHeight;
   }
@@ -96,83 +106,6 @@
     return s + '\nJawab pesan User terakhir secara ringkas dan praktis.';
   }
 
-  async function orCallM(msgs, model) {
-    if (!GAS_PROXY) throw new Error('GAS_PROXY kosong');
-    var lastErr = null;
-    for (var attempt = 1; attempt <= 2; attempt++) {
-      try {
-        var r = await fetch(GAS_PROXY, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ model: model, messages: msgs }) });
-        if (!r.ok) throw new Error('Bridge HTTP ' + r.status);
-        var text = await r.text();
-        if (text.trim().charAt(0) === '<') throw new Error('Bridge membalas HTML.');
-        var j = JSON.parse(text);
-        if (j.error) {
-          var code = (j.error && j.error.code) || null;
-          var err = new Error(String(j.error.message || j.error)); err.code = code;
-          if (code === 429) { lastErr = err; if (attempt === 1) { await new Promise(function (res) { setTimeout(res, 6000); }); continue; } break; }
-          lastErr = err; break;
-        }
-        if (j.choices && j.choices[0] && j.choices[0].message) return j.choices[0].message.content || 'Tidak ada respon.';
-        throw new Error('Balasan tanpa choices.');
-      } catch (e) {
-        lastErr = e;
-        if (attempt === 1 && /Load failed|network|fetch/i.test(e.message)) { await new Promise(function (res) { setTimeout(res, 3000); }); continue; }
-        break;
-      }
-    }
-    throw lastErr || new Error('OpenRouter gagal.');
-  }
-  async function polCallM(msgs, model) {
-    var r = await fetch('https://text.pollinations.ai/', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ messages: msgs, model: model }) });
-    if (!r.ok) throw new Error('Pollinations HTTP ' + r.status);
-    var t = await r.text();
-    if (!t || t.length < 2) throw new Error('Pollinations balasan kosong');
-    return t;
-  }
-  function loadPuter() {
-    if (window.puter) return Promise.resolve();
-    if (loadPuter._p) return loadPuter._p;
-    loadPuter._p = new Promise(function (resolve, reject) {
-      var s = document.createElement('script');
-      s.src = 'https://js.puter.com/v2/';
-      s.onload = function () { resolve(); };
-      s.onerror = function () { reject(new Error('SDK Puter gagal dimuat')); };
-      document.head.appendChild(s);
-      setTimeout(function () { if (window.puter) resolve(); else reject(new Error('SDK Puter terlalu lambat')); }, 9000);
-    });
-    loadPuter._p.catch(function () { loadPuter._p = null; });
-    return loadPuter._p;
-  }
-  async function putCallM(msgs, model) {
-    await loadPuter();
-    var res = await window.puter.ai.chat(msgs, { model: model });
-    if (typeof res === 'string') return res;
-    if (res && res.message && res.message.content) {
-      var c = res.message.content;
-      if (typeof c === 'string') return c;
-      if (c.length && c[0] && c[0].text) return c[0].text;
-    }
-    if (res && res.text) return res.text;
-    throw new Error('Format respon Puter tidak dikenal');
-  }
-
-  async function ask(mid, text) {
-    var idx = mid.indexOf(':');
-    var prov = mid.slice(0, idx);
-    var model = mid.slice(idx + 1);
-    if (prov === 'core') {
-      var p = flatten();
-      if (model === 'gemini') return await geminiCall(p);
-      return await qwenCall(p);
-    }
-    var msgs = msgsPayload();
-    msgs.push({ role: 'user', content: text });
-    if (prov === 'or') return await orCallM(msgs, model);
-    if (prov === 'pol') return await polCallM(msgs, model);
-    if (prov === 'put') return await putCallM(msgs, model);
-    throw new Error('Model tidak dikenal');
-  }
-
   window.sendChat = async function () {
     var inp = document.getElementById('chatInput');
     var text = (inp.value || '').trim();
@@ -185,11 +118,22 @@
     if (hist.length > 60) hist = hist.slice(hist.length - 60);
     save(); renderMsgs();
     try {
-      ph.content = await ask(mid, text);
+      var idx = mid.indexOf(':');
+      var prov = mid.slice(0, idx);
+      if (prov === 'core') {
+        var p = flatten();
+        ph.content = (mid.slice(idx + 1) === 'gemini') ? await geminiCall(p) : await qwenCall(p);
+      } else if (window.FF) {
+        var msgs = msgsPayload();
+        msgs.push({ role: 'user', content: text });
+        ph.content = await window.FF.callMsgs(msgs, mid);
+      } else {
+        throw new Error('Free Fleet belum dimuat');
+      }
     } catch (e) {
       ph.content = '⚠ Gagal: ' + e.message + ' — coba mesin lain di bar atas.';
     }
     save(); renderMsgs();
   };
 })();
-/* END aichat v2 */
+/* END aichat v3 */
