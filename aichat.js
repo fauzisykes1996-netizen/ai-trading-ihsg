@@ -26,8 +26,16 @@
 
   var hist = lsJSON('ihsg_chat_log', []);
 
+  function labelOf(id) { for (var k = 0; k < CHAT_MODELS.length; k++) if (CHAT_MODELS[k].id === id) return CHAT_MODELS[k].label; return id; }
+  function save() { saveLS('ihsg_chat_log', hist); }
+
+  window.openChat = function () { panel.style.display = 'flex'; renderMsgs(); setTimeout(function () { var inp = document.getElementById('chatInput'); if (inp) inp.focus(); }, 150); };
+  window.closeChat = function () { panel.style.display = 'none'; };
+  window.clearChat = function () { hist = []; save(); renderMsgs(); toast('🗑 Percakapan dibersihkan.'); };
+
   var fab = document.createElement('button');
-  fab.id = 'chatFab'; fab.innerText = '💬'; fab.onclick = openChat;
+  fab.id = 'chatFab'; fab.innerText = '💬';
+  fab.onclick = function () { window.openChat(); };
   document.body.appendChild(fab);
 
   var panel = document.createElement('div');
@@ -52,13 +60,7 @@
   sel.innerHTML = opts;
   sel.value = localStorage.getItem('ihsg_chat_model') || CHAT_MODELS[0].id;
   sel.onchange = function () { localStorage.setItem('ihsg_chat_model', sel.value); toast('💬 Mesin chat: ' + labelOf(sel.value)); };
-  document.getElementById('chatInput').addEventListener('keydown', function (e) { if (e.key === 'Enter') sendChat(); });
-
-  function labelOf(id) { for (var k = 0; k < CHAT_MODELS.length; k++) if (CHAT_MODELS[k].id === id) return CHAT_MODELS[k].label; return id; }
-  function save() { saveLS('ihsg_chat_log', hist); }
-  window.openChat = function () { panel.style.display = 'flex'; renderMsgs(); setTimeout(function () { document.getElementById('chatInput').focus(); }, 150); };
-  window.closeChat = function () { panel.style.display = 'none'; };
-  window.clearChat = function () { hist = []; save(); renderMsgs(); toast('🗑 Percakapan dibersihkan.'); };
+  document.getElementById('chatInput').addEventListener('keydown', function (e) { if (e.key === 'Enter') window.sendChat(); });
 
   function renderMsgs() {
     var box = document.getElementById('chatMsgs'); if (!box) return;
@@ -190,4 +192,4 @@
     save(); renderMsgs();
   };
 })();
-/* END aichat v1 */
+/* END aichat v2 */
