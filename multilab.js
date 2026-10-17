@@ -1,0 +1,67 @@
+/* multilab.js - Lab Multi-Saham: backtest batch 2 strategi x 24 saham + tabel peringkat */
+(function(){
+ if(!window.P||!window.SW)return;
+ var SW=window.SW;
+ var UNIV=[].concat(typeof SCR_UNIVERSE!=='undefined'?SCR_UNIVERSE:[]).concat(["BBCA","BBRI","BMRI","TLKM","ASII","ANTM","PTBA","ADMR","NCKL","PGEO","AMMN","CUAN","MDKA","TPIA","KLBF","ICBP","UNVR","GOTO","BUKA","BRPT","MEDC","INDY","TINS","SMGR"]);
+ UNIV=UNIV.filter(function(v,i,s){return s.indexOf(v)===i;}).slice(0,24);
+ var anchor=document.getElementById('swLabOut')?document.getElementById('swLabOut').closest('.card'):null;
+ P.card('tab-analysis',
+  '<div class="card-title"><span>📊 Lab Multi-Saham</span><span class="agent-pill tech">Ranking Strategi</span></div>'+
+  '<button class="btn-copy" style="margin-top:0;" id="mlBtn" onclick="runMultiLab()">📊 Scan Ranking Strategi (24 saham)</button>'+
+  '<div id="mlNote" style="font-size:0.7rem;color:var(--text-muted);margin-top:8px;">Backtest Pullback & Donchian x 24 saham (2 tahun, net biaya). Diurutkan Profit Factor. Ketuk baris = buka Swing Lab saham itu.</div>'+
+  '<div id="mlOut" class="hidden" style="margin-top:10px;"></div>',anchor);
+ function btP(c,h,l,o,mh,tp){var ma20=SW.sma(c,20),ma50=SW.sma(c,50),rsi=SW.rsi(c,14),adx=SW.adx(h,l,c,14),atr=SW.atr(h,l,c,14);var tr=[];var pos=null;for(var i=50;i<c.length-1;i++){if(!pos){if(ma20[i]&&ma50[i]&&adx[i]&&rsi[i]&&atr[i]&&c[i]>ma20[i]&&ma20[i]>ma50[i]&&adx[i]>=20&&rsi[i]>=40&&rsi[i]<=65){var d=(c[i]-ma20[i])/ma20[i]*100;if(d>=-1&&d<=3)pos={entry:o[i+1],ei:i+1,sl:Math.min(SW.lowest(l,i-9,i+1)-atr[i]*0.3,o[i+1]-atr[i]*1.2)};}}else{var held=i-pos.ei;var ex=null;if(l[i]<=pos.sl){ex=pos.sl;}else if(h[i]>=pos.entry+(pos.entry-pos.sl)*tp){ex=pos.entry+(pos.entry-pos.sl)*tp;}else if(held>=mh){ex=o[i+1]<c[i]?o[i+1]:c[i];}if(ex!=null){tr.push((ex-pos.entry)/pos.entry-P.fee);pos=null;}}}return tr;}
+ function btD(c,h,l,o,mh,tp){var ma50=SW.sma(c,50),atr=SW.atr(h,l,c,14);var tr=[];var pos=null;for(var i=21;i<c.length-1;i++){if(!pos){var hh=SW.highest(h,i-20,i);if(ma50[i]&&atr[i]&&c[i]>ma50[i]&&c[i]>=hh*0.999)pos={entry:o[i+1],ei:i+1,sl:SW.lowest(l,i-19,i+1)-atr[i]*0.3};}else{var held=i-pos.ei;var ex=null;if(l[i]<=pos.sl){ex=pos.sl;}else if(h[i]>=pos.entry+(pos.entry-pos.sl)*tp){ex=pos.entry+(pos.entry-pos.sl)*tp;}else if(held>=mh){ex=o[i+1]<c[i]?o[i+1]:c[i];}if(ex!=null){tr.push((ex-pos.entry)/pos.entry-P.fee);pos=null;}}}return tr;}
+ function st(tr){if(!tr.length)return null;var n=tr.length;var w=0;var gw=0;var gl=0;var sum=0;for(var i=0;i<n;i++){sum+=tr[i];if(tr[i]>0){w++;gw+=tr[i];}else gl+=-tr[i];}var pf=gl>0?gw/gl:(gw>0?99:0);return{n:n,wr:w/n*100,pf:pf,exp:sum/n*100};}
+ window.runMultiLab=async function(){
+  var btn=document.getElementById('mlBtn');btn.disabled=true;btn.innerText='Scanning 24 saham...';
+  var out=document.getElementById('mlOut');out.classList.remove('hidden');out.innerHTML='<div class="skel-box" style="height:80px"></div>';
+  try{
+   var cache=lsJSON('multilab_cache',null);
+   if(cache&&cache.t&&Date.now()-cache.t<600000){render(cache.rows);note('Cache '+new Date(cache.t).toLocaleTimeString('id-ID')+' (10 menit).');return;}
+   var settled=await Promise.allSettled(UNIV.map(function(c){return SW.candle(c,'2y');}));
+   var rows=[];
+   settled.forEach(function(res,i){
+    if(res.status!=='fulfilled')return;
+    var A=SW.arrays(res.value);if(A.c.length<80)return;
+    var rP=st(btP(A.c,A.h,A.l,A.o,25,2.5));
+    var rD=st(btD(A.c,A.h,A.l,A.o,30,2.5));
+    var best=null,strat='';
+    if(rP&&rP.n>=4&&(!best||rP.pf>best.pf)){best=rP;strat='pullback';}
+    if(rD&&rD.n>=4&&(!best||rD.pf>best.pf)){best=rD;strat='donchian';}
+    if(best)rows.push({code:UNIV[i],strat:strat,n:best.n,pf:best.pf,exp:best.exp,wr:best.wr});
+   });
+   rows.sort(function(a,b){return b.pf-a.pf||b.exp-a.exp;});
+   saveLS('multilab_cache',{t:Date.now(),rows:rows});
+   render(rows);
+   note('Diperbarui '+new Date().toLocaleTimeString('id-ID')+' - '+rows.length+' saham punya trade cukup.');
+  }catch(e){out.innerHTML='<div style="color:var(--red);">Scan gagal: '+esc(e.message)+'</div>';}
+  finally{btn.disabled=false;btn.innerText='📊 Scan Ranking Strategi (24 saham)';}
+ };
+ function note(t){var e=document.getElementById('mlNote');if(e)e.innerText=t;}
+ function render(rows){
+  var out=document.getElementById('mlOut');window.__mlRows=rows;
+  if(!rows.length){out.innerHTML='<div style="color:var(--yellow);font-size:0.8rem;">Tidak ada saham dengan trade cukup (>=4) dalam 2 tahun.</div>';return;}
+  var h='';
+  for(var i=0;i<rows.length;i++){
+   var r=rows[i];
+   var pfCol=r.pf>=1.5?'green':(r.pf>=1?'yellow':'red');
+   h+='<div class="mkt-row" style="cursor:pointer;" onclick="mlPick('+i+')">';
+   h+='<span><strong>'+r.code+'</strong> <span style="color:var(--text-muted);font-size:0.68rem;">'+(r.strat==='pullback'?'Pullback':'Donchian')+' - '+r.n+' trade'+(r.n<8?' (sampel kecil)':'')+'</span><br>';
+   h+='<span style="font-size:0.66rem;color:#64748b;font-family:var(--mono);">WR '+r.wr.toFixed(0)+'% - expectancy '+(r.exp>=0?'+':'')+r.exp.toFixed(2)+'%</span></span>';
+   h+='<span style="text-align:right;font-family:var(--mono);font-weight:800;" class="'+pfCol+'">'+(r.pf>=99?'99+':r.pf.toFixed(2))+'</span></div>';
+  }
+  h+='<div class="src-note">PF = Profit Factor. Hijau (>=1,5) = edge historis layak. Ini filter "saham rumah strategi Anda", bukan sinyal beli hari ini.</div>';
+  out.innerHTML=h;
+ }
+ window.mlPick=function(i){
+  var r=(window.__mlRows||[])[i];if(!r)return;
+  switchTab('analysis');
+  setTimeout(function(){
+   var sc=document.getElementById('swCode');if(sc)sc.value=r.code;
+   var st2=document.getElementById('swStrat');if(st2)st2.value=r.strat;
+   if(window.runSwingLab)window.runSwingLab();
+  },400);
+ };
+})();
+/* END multilab v1 */
