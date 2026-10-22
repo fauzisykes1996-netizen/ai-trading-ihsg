@@ -22,7 +22,7 @@
   };
   function loadAll() {
     document.querySelectorAll('header strong').forEach(function (el) { el.innerText = 'Build v6.6'; });
-   var files = ['bsjp.js', 'quant.js', 'compare.js', 'friendly.js', 'swcore.js', 'swscan.js', 'swlab.js', 'swx.js', 'freeai.js', 'aichat.js', 'agent-bandar.js', 'agent-moneyflow.js', 'agent-regime.js', 'agent-grader.js', 'agent-extras.js', 'multilab.js', 'poheat.js', 'shortlist.js', 'pwa.js', 'weekrev.js', 'partner.js','usmarket.js','fixwidth.js','duel5.js','onemonth.js'];
+   var files = ['bsjp.js', 'quant.js', 'compare.js', 'friendly.js', 'swcore.js', 'swscan.js', 'swlab.js', 'swx.js', 'freeai.js', 'aichat.js', 'agent-bandar.js', 'agent-moneyflow.js', 'agent-regime.js', 'agent-grader.js', 'agent-extras.js', 'multilab.js', 'poheat.js', 'shortlist.js', 'pwa.js', 'weekrev.js', 'partner.js','usmarket.js','fixwidth.js','duel5.js','onemonth.js','toppicks.js'];
 
 
     for (var i = 0; i < files.length; i++) {
