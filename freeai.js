@@ -1,7 +1,9 @@
-/* freeai.js v5 - Free Fleet: OpenRouter gratis (auto-refresh + blacklist model terkurung + auto-fallback) + Puter */
+/* freeai.js v6 - Free Fleet: filter model text->text, deteksi key limit, prioritas Puter saat OR mati */
 (function () {
   if (!window.P) return;
   var BADFAM = ['thinkingmachines'];
+  var BADKW = ['lyria', 'audio', 'music', 'image', 'video', 'tts', 'speech', 'embed'];
+  var orDead = false;
   var FLEET = [{ id: 'put:gpt-4o-mini', label: '🪁 Puter GPT-4o mini (no-key)' }];
 
   (function () {
@@ -11,6 +13,7 @@
   })();
 
   async function orCallMsgs(msgs, model) {
+    if (orDead) throw Object.assign(new Error('OpenRouter key limit - mesin OR dinonaktifkan sesi ini.'), { keylimit: true });
     if (!GAS_PROXY) throw new Error('GAS_PROXY kosong');
     var lastErr = null;
     for (var attempt = 1; attempt <= 2; attempt++) {
@@ -25,6 +28,7 @@
           var code = (j.error && j.error.code) || null;
           var err = new Error(msg); err.code = code;
           if (/agentic|harness|only available/i.test(msg)) err.harness = true;
+          if (/key limit exceeded|total limit/i.test(msg)) err.keylimit = true;
           if (code === 429) { lastErr = err; if (attempt === 1) { await new Promise(function (res) { setTimeout(res, 6000); }); continue; } break; }
           lastErr = err; break;
         }
@@ -72,13 +76,14 @@
     var model = value.slice(idx + 1);
     if (prov === 'or') {
       try { return await orCallMsgs(msgs, model); } catch (e) {
+        if (e.keylimit) { orDead = true; throw e; }
         if (!e.harness) throw e;
         for (var i = 0; i < FLEET.length; i++) {
           var id = FLEET[i].id;
           if (id.indexOf('or:') !== 0) continue;
           var m2 = id.slice(3);
           if (m2 === model) continue;
-          try { return await orCallMsgs(msgs, m2); } catch (e2) { if (!e2.harness) throw e2; }
+          try { return await orCallMsgs(msgs, m2); } catch (e2) { if (e2.keylimit) { orDead = true; throw e2; } if (!e2.harness) throw e2; }
         }
         throw e;
       }
@@ -117,9 +122,11 @@
                 var m = j.data[i];
                 if (!m || !m.id || !m.pricing) continue;
                 if (parseFloat(m.pricing.prompt) !== 0 || parseFloat(m.pricing.completion) !== 0) continue;
+                if (m.architecture && m.architecture.modality && m.architecture.modality !== 'text->text') continue;
                 var idl = m.id.toLowerCase();
                 var bad = false;
                 for (var b = 0; b < BADFAM.length; b++) { if (idl.indexOf(BADFAM[b]) >= 0) { bad = true; break; } }
+                if (!bad) { for (var k2 = 0; k2 < BADKW.length; k2++) { if (idl.indexOf(BADKW[k2]) >= 0) { bad = true; break; } } }
                 if (bad) continue;
                 free.push(m);
               }
@@ -155,7 +162,7 @@
     rebuild();
   })();
 
-  window.FF = { models: function () { return FLEET.slice(); }, ready: ready, callMsgs: callMsgs, callPrompt: callPrompt };
+  window.FF = { models: function () { return FLEET.slice(); }, ready: ready, callMsgs: callMsgs, callPrompt: callPrompt, orDead: function () { return orDead; } };
 
   var row = document.querySelector('.engine-row');
   var seg = row ? row.querySelector('.seg') : null;
@@ -179,7 +186,9 @@
     var sel = document.getElementById('freeModel');
     var chosen = sel ? sel.value : FLEET[0].id;
     var chain = [chosen];
-    for (var f = 0; f < FLEET.length && chain.length < 4; f++) { if (FLEET[f].id !== chosen) chain.push(FLEET[f].id); }
+    var f;
+    for (f = 0; f < FLEET.length && chain.length < 5; f++) { if (FLEET[f].id.indexOf('put:') === 0 && FLEET[f].id !== chosen) chain.push(FLEET[f].id); }
+    for (f = 0; f < FLEET.length && chain.length < 5; f++) { if (FLEET[f].id.indexOf('or:') === 0 && FLEET[f].id !== chosen) chain.push(FLEET[f].id); }
     var lastErr = null;
     for (var i = 0; i < chain.length; i++) {
       try { return await callPrompt(prompt, chain[i]); } catch (e) { lastErr = e; }
@@ -201,4 +210,4 @@
   };
   window.updateEngineUI();
 })();
-/* END freeai v5 */
+/* END freeai v6 */
