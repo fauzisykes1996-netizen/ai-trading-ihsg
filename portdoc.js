@@ -1,4 +1,4 @@
-/* portdoc.js v2 - Portfolio Heat + Portfolio Doctor: auto-deteksi penyimpanan portfolio */
+/* portdoc.js v3 - Portfolio Heat + Doctor: baca posisi dari DOM layar + pemindai storage multi-format */
 (function(){
  if(!window.P||!window.SW)return;
  var SW=window.SW;
@@ -11,6 +11,32 @@
   var p=!!(o.avg||o.entry||o.price||o.buy||o.harga||o.avgPrice);
   return c&&l&&p;
  }
+ function cleanCode(s){var o='';var u=String(s).toUpperCase();for(var i=0;i<u.length;i++){var ch=u.charAt(i);if((ch>='A'&&ch<='Z')||(ch>='0'&&ch<='9'))o+=ch;}return o.slice(0,6);}
+ function parseDomPorto(){
+  var cards=document.querySelectorAll('#tab-porto .card');
+  var target=null;
+  for(var i=0;i<cards.length;i++){var t=(cards[i].innerText||'').toUpperCase();if(t.indexOf('PORTFOLIO SAYA')>=0){target=cards[i];break;}}
+  if(!target)return [];
+  var lines=(target.innerText||'').split('\n');
+  var out=[];var prev='';
+  for(var l=0;l<lines.length;l++){
+   var line=lines[l].trim();
+   var idx=line.indexOf(' lot @');
+   if(idx>=0){
+    var head=line.slice(0,idx);
+    var tail=line.slice(idx+6);
+    var parts=head.split(' ');var toks=[];
+    for(var p=0;p<parts.length;p++){if(parts[p])toks.push(parts[p]);}
+    var lot=0,code='';
+    if(toks.length>=2){lot=parseFloat(toks[toks.length-1]);code=cleanCode(toks.slice(0,toks.length-1).join(' '));}
+    else if(toks.length===1){lot=parseFloat(toks[0]);code=cleanCode(prev);}
+    var avg=parseFloat(tail);
+    if(code&&lot>0&&avg>0)out.push({t:code,lot:lot,avg:avg});
+   }
+   prev=line;
+  }
+  return out;
+ }
  function getPorto(){
   lastSrc='';
   var gn=['portfolio','portofolio','myPortfolio','PORTFOLIO','porto','positions','myPorto'];
@@ -20,12 +46,34 @@
   try{
    for(var s=0;s<localStorage.length;s++){
     var key=localStorage.key(s);if(!key)continue;
-    var raw=localStorage.getItem(key);
-    if(!raw||raw.charAt(0)!=='[')continue;
-    var arr=null;try{arr=JSON.parse(raw);}catch(e){continue;}
-    if(Array.isArray(arr)&&arr.length&&looksPos(arr[0])){lastSrc='scan:'+key;return arr;}
+    var raw=localStorage.getItem(key);if(!raw)continue;
+    if(raw.charAt(0)==='['){
+     var arr=null;try{arr=JSON.parse(raw);}catch(e){continue;}
+     if(Array.isArray(arr)&&arr.length&&looksPos(arr[0])){lastSrc='scan:'+key;return arr;}
+     continue;
+    }
+    if(raw.charAt(0)==='{'){
+     var ob=null;try{ob=JSON.parse(raw);}catch(e2){continue;}
+     if(!ob||typeof ob!=='object')continue;
+     var props=['positions','position','list','items','data','porto','portfolio','saham'];
+     var found=null;
+     for(var pp=0;pp<props.length;pp++){if(Array.isArray(ob[props[pp]])&&ob[props[pp]].length&&looksPos(ob[props[pp]][0])){found=ob[props[pp]];break;}}
+     if(!found){
+      var ks2=Object.keys(ob);var mapArr=[];
+      for(var kk=0;kk<ks2.length;kk++){var vv=ob[ks2[kk]];
+       if(vv&&typeof vv==='object'){
+        var ll=parseFloat(vv.lot||vv.qty||vv.shares||vv.jumlah)||0;
+        var pr=parseFloat(vv.avg||vv.entry||vv.price||vv.buy||vv.harga||vv.avgPrice)||0;
+        if(ll>0&&pr>0)mapArr.push({t:ks2[kk],lot:ll,avg:pr});
+       }}
+      if(mapArr.length)found=mapArr;
+     }
+     if(found){lastSrc='scan-obj:'+key;return found;}
+    }
    }
-  }catch(e2){}
+  }catch(e3){}
+  var dom=parseDomPorto();
+  if(dom.length){lastSrc='dom:Portfolio Saya';return dom;}
   return [];
  }
  function codeOf(e){return e.t||e.code||e.ticker||e.symbol||e.kode||'';}
@@ -52,10 +100,10 @@
   '<button class="btn-copy" style="margin-top:0;" id="pdBtn" onclick="runPortDoc()">🩺 Minta Review AI</button>'+
   '<div id="pdOut" style="font-size:0.8rem;color:var(--text-muted);margin-top:8px;">Membaca semua posisi, menghitung risiko & korelasi, lalu AI memberi verdict HOLD/ADD/TRIM/EXIT per posisi + keputusan tingkat portofolio.</div>',document.getElementById('phOut').closest('.card'));
 
- function buildRows(porto,modal){
+ function buildRows(porto){
   var rows=[];
   for(var i=0;i<porto.length;i++){
-   var e=porto[i];var code=codeOf(e).toUpperCase();var lot=lotOf(e);var avg=avgOf(e);
+   var e=porto[i];var code=cleanCode(codeOf(e));var lot=lotOf(e);var avg=avgOf(e);
    if(code&&lot>0&&avg>0)rows.push({t:code,lot:lot,avg:avg});
   }
   return rows;
@@ -63,7 +111,7 @@
  window.runHeat=async function(){
   var out=document.getElementById('phOut');
   var porto=getPorto();
-  if(!porto.length){out.innerHTML='<div style="color:var(--yellow);font-size:0.8rem;">Portfolio masih terbaca kosong. Sumber dicari: '+(lastSrc||'tidak ketemu')+'. Pastikan posisi tersimpan di kartu Portfolio Saya.</div>';return;}
+  if(!porto.length){out.innerHTML='<div style="color:var(--yellow);font-size:0.8rem;">Portfolio masih terbaca kosong (sumber: '+(lastSrc||'tidak ketemu')+'). Scroll agar kartu Portfolio Saya terlihat, lalu coba lagi.</div>';return;}
   out.innerHTML='<div class="skel-box" style="height:60px"></div>';
   var list=buildRows(porto);
   var modal=0;for(var i=0;i<list.length;i++)modal+=list[i].lot*100*list[i].avg;
@@ -126,7 +174,7 @@
  window.runPortDoc=async function(){
   var out=document.getElementById('pdOut');
   var porto=getPorto();
-  if(!porto.length){out.innerHTML='<div style="color:var(--yellow);font-size:0.8rem;">Portfolio terbaca kosong (sumber: '+(lastSrc||'tidak ketemu')+'). Isi posisi di kartu Portfolio Saya dulu.</div>';return;}
+  if(!porto.length){out.innerHTML='<div style="color:var(--yellow);font-size:0.8rem;">Portfolio terbaca kosong (sumber: '+(lastSrc||'tidak ketemu')+'). Scroll agar kartu Portfolio Saya terlihat di layar, lalu coba lagi.</div>';return;}
   out.innerHTML='<div class="skel-box" style="height:80px"></div>';
   var btn=document.getElementById('pdBtn');if(btn){btn.disabled=true;btn.innerText='Menganalisis portfolio...';}
   try{
@@ -198,4 +246,4 @@
  };
  setTimeout(mountChips,1200);
 })();
-/* END portdoc v2 */
+/* END portdoc v3 */
