@@ -1,7 +1,7 @@
-/* freeai.js v4 - Free Fleet: OpenRouter gratis (auto-refresh) + Puter (auto-refresh), tanpa model mati */
+/* freeai.js v5 - Free Fleet: OpenRouter gratis (auto-refresh + blacklist model terkurung + auto-fallback) + Puter */
 (function () {
   if (!window.P) return;
-
+  var BADFAM = ['thinkingmachines'];
   var FLEET = [{ id: 'put:gpt-4o-mini', label: '🪁 Puter GPT-4o mini (no-key)' }];
 
   (function () {
@@ -21,8 +21,10 @@
         if (text.trim().charAt(0) === '<') throw new Error('Bridge membalas HTML.');
         var j = JSON.parse(text);
         if (j.error) {
+          var msg = String(j.error.message || j.error);
           var code = (j.error && j.error.code) || null;
-          var err = new Error(String(j.error.message || j.error)); err.code = code;
+          var err = new Error(msg); err.code = code;
+          if (/agentic|harness|only available/i.test(msg)) err.harness = true;
           if (code === 429) { lastErr = err; if (attempt === 1) { await new Promise(function (res) { setTimeout(res, 6000); }); continue; } break; }
           lastErr = err; break;
         }
@@ -63,11 +65,24 @@
     if (res && res.text) return res.text;
     throw new Error('Format respon Puter tidak dikenal');
   }
+
   async function callMsgs(msgs, value) {
     var idx = value.indexOf(':');
     var prov = value.slice(0, idx);
     var model = value.slice(idx + 1);
-    if (prov === 'or') return orCallMsgs(msgs, model);
+    if (prov === 'or') {
+      try { return await orCallMsgs(msgs, model); } catch (e) {
+        if (!e.harness) throw e;
+        for (var i = 0; i < FLEET.length; i++) {
+          var id = FLEET[i].id;
+          if (id.indexOf('or:') !== 0) continue;
+          var m2 = id.slice(3);
+          if (m2 === model) continue;
+          try { return await orCallMsgs(msgs, m2); } catch (e2) { if (!e2.harness) throw e2; }
+        }
+        throw e;
+      }
+    }
     if (prov === 'put') return putCallMsgs(msgs, model);
     throw new Error('Provider tidak dikenal');
   }
@@ -100,7 +115,13 @@
               var free = [];
               for (var i = 0; i < j.data.length; i++) {
                 var m = j.data[i];
-                if (m && m.id && m.pricing && parseFloat(m.pricing.prompt) === 0 && parseFloat(m.pricing.completion) === 0) free.push(m);
+                if (!m || !m.id || !m.pricing) continue;
+                if (parseFloat(m.pricing.prompt) !== 0 || parseFloat(m.pricing.completion) !== 0) continue;
+                var idl = m.id.toLowerCase();
+                var bad = false;
+                for (var b = 0; b < BADFAM.length; b++) { if (idl.indexOf(BADFAM[b]) >= 0) { bad = true; break; } }
+                if (bad) continue;
+                free.push(m);
               }
               free.sort(function (a, b) { return (b.context_length || 0) - (a.context_length || 0); });
               for (var k = 0; k < free.length && orList.length < 10; k++) orList.push({ id: 'or:' + free[k].id, label: '🆓 ' + free[k].name + ' (OR gratis)' });
@@ -114,17 +135,17 @@
       if (window.puter && window.puter.ai && typeof window.puter.ai.models === 'function') {
         var models = await window.puter.ai.models();
         var arr = Array.isArray(models) ? models : (models && models.data ? models.data : []);
-        var want = ['gpt-4o-mini', 'gpt-5-nano', 'deepseek-v3.2', 'claude-haiku-4-5', 'gemini-2.5-flash', 'llama-3.3-70b'];
+        var want = ['gpt-4o-mini', 'gpt-5-nano', 'deepseek', 'claude-haiku', 'gemini-2.5-flash', 'llama-3.3-70b'];
         for (var w = 0; w < want.length; w++) {
           for (var a = 0; a < arr.length; a++) {
-            var id = arr[a] && (arr[a].id || arr[a].name || '');
-            if (id && id.toLowerCase().indexOf(want[w]) !== -1) { putList.push({ id: 'put:' + id, label: '🪁 Puter ' + id + ' (no-key)' }); break; }
+            var pid = arr[a] && (arr[a].id || arr[a].name || '');
+            if (pid && pid.toLowerCase().indexOf(want[w]) !== -1) { putList.push({ id: 'put:' + pid, label: '🪁 Puter ' + pid + ' (no-key)' }); break; }
           }
         }
         if (!putList.length && arr.length) {
           for (var p = 0; p < arr.length && putList.length < 6; p++) {
-            var pid = arr[p] && (arr[p].id || arr[p].name || '');
-            if (pid) putList.push({ id: 'put:' + pid, label: '🪁 Puter ' + pid + ' (no-key)' });
+            var pid2 = arr[p] && (arr[p].id || arr[p].name || '');
+            if (pid2) putList.push({ id: 'put:' + pid2, label: '🪁 Puter ' + pid2 + ' (no-key)' });
           }
         }
       }
@@ -180,4 +201,4 @@
   };
   window.updateEngineUI();
 })();
-/* END freeai v4 */
+/* END freeai v5 */
