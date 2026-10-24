@@ -1,4 +1,4 @@
-/* onemonth.js v2 - One-Month Forecast + Analog Historis (probabilitas berbasis bukti) */
+/* onemonth.js v3 - One-Month Forecast: analog historis + pita skenario optimis/basis/pesimis */
 (function(){
 if(!window.P||!window.SW)return;
 var SW=window.SW;
@@ -6,8 +6,9 @@ var anchor=null;
 var gEl=document.getElementById('graderOut');
 if(gEl)anchor=gEl.closest('.card');
 if(!anchor){var rEl=document.getElementById('regimeOut');if(rEl)anchor=rEl.closest('.card');}
-P.card('tab-analysis','<div class="card-title"><span>📅 One-Month Forecast</span><span class="agent-pill master">Pegang 1 Bulan?</span></div><div id="omOut" style="font-size:0.8rem;color:var(--text-muted);">Proses saham - skor 0-100 + bukti analog historis untuk 20-25 hari ke depan.</div>',anchor);
+P.card('tab-analysis','<div class="card-title"><span>📅 One-Month Forecast</span><span class="agent-pill master">Pegang 1 Bulan?</span></div><div id="omOut" style="font-size:0.8rem;color:var(--text-muted);">Proses saham - skor 0-100 + analog historis + pita skenario harga 20 hari.</div>',anchor);
 function domUpper(id){var e=document.getElementById(id);return e?(e.innerText||'').toUpperCase():'';}
+function pctOf(arr,p){var i=Math.floor((arr.length-1)*p);return arr[i];}
 function analog(candle){
 var q=candle.indicators.quote[0];
 var c=[];var v=[];
@@ -50,7 +51,7 @@ fwd.sort(function(a,b){return a-b;});
 var w=0;var sum=0;
 for(var f=0;f<fwd.length;f++){if(fwd[f]>0)w++;sum+=fwd[f];}
 var med=fwd[Math.floor(fwd.length/2)];
-return {n:fwd.length,wr:w/fwd.length*100,med:med,worst:fwd[0]};
+return {n:fwd.length,wr:w/fwd.length*100,med:med,worst:fwd[0],p25:pctOf(fwd,0.25),p75:pctOf(fwd,0.75)};
 }
 function forecast(code,candle){
 var A=SW.arrays(candle);var n=A.c.length;
@@ -138,7 +139,7 @@ exit+='<div style="font-size:0.72rem;font-weight:800;color:#fff;margin-top:10px;
 exit+='<div style="font-size:0.74rem;color:var(--text-muted);line-height:1.6;">';
 exit+='• Wajib keluar bila harga jebol '+sl.toLocaleString('id-ID')+' (breakdown MA50).<br>';
 exit+='• Review mingguan: kalau 2 minggu tidak bergerak >=3%, pertimbangkan rotasi.<br>';
-exit+='• Target 1 bulan: +(10-15)% realistis bila tren berlanjut.<br>';
+exit+='• Target 1 bulan: lihat pita skenario di atas (basis = target wajar).<br>';
 exit+='• Jangan tambah posisi kalau turun >7% dari entry tanpa konfirmasi volume.';
 exit+='</div>';
 return exit;
@@ -157,12 +158,19 @@ h+='<span style="margin-right:6px;">'+(r.ok?'✅':'❌')+'</span>'+r.txt+'</div>
 }
 h+='</div>';
 if(f.an){
-h+='<div style="font-size:0.74rem;padding:8px 10px;border:1px solid var(--card-border);border-radius:12px;background:var(--card-bg);margin-bottom:8px;">📚 <strong>Analog historis:</strong> '+f.an.n+' kondisi serupa di masa lalu saham ini → win rate '+f.an.wr.toFixed(0)+'% • median '+(f.an.med>=0?'+':'')+f.an.med.toFixed(1)+'% • terburuk '+f.an.worst.toFixed(1)+'% (20 hari kemudian).</div>';
+h+='<div style="font-size:0.74rem;padding:8px 10px;border:1px solid var(--card-border);border-radius:12px;background:var(--card-bg);margin-bottom:8px;">📚 <strong>Analog historis:</strong> '+f.an.n+' kondisi serupa → win rate '+f.an.wr.toFixed(0)+'% • terburuk '+f.an.worst.toFixed(1)+'% (20 hari kemudian).</div>';
+var L1=Math.round(f.price*(1+f.an.p75/100));
+var L0=Math.round(f.price*(1+f.an.med/100));
+var Lm=Math.round(f.price*(1+f.an.p25/100));
+h+='<div style="font-size:0.74rem;padding:8px 10px;border:1px solid var(--card-border);border-radius:12px;background:var(--card-bg);margin-bottom:8px;line-height:1.7;">📊 <strong>Pita skenario 20 hari:</strong><br>';
+h+='🟢 Optimis (p75): Rp '+L1.toLocaleString('id-ID')+' ('+(f.an.p75>=0?'+':'')+f.an.p75.toFixed(1)+'%)<br>';
+h+='⚪ Basis (median): Rp '+L0.toLocaleString('id-ID')+' ('+(f.an.med>=0?'+':'')+f.an.med.toFixed(1)+'%) = target wajar<br>';
+h+='🔴 Pesimis (p25): Rp '+Lm.toLocaleString('id-ID')+' ('+(f.an.p25>=0?'+':'')+f.an.p25.toFixed(1)+'%) = acuan zona SL</div>';
 }
 h+='<div style="font-size:0.72rem;font-weight:800;color:#fff;margin-top:8px;">📈 Performa 60 hari vs IHSG</div>';
 h+=chart;
 h+=exitPlan(f);
-h+='<div style="font-size:0.64rem;color:#64748b;margin-top:10px;">Forecast probabilistik + bukti historis. Bukan ramalan pasti - selalu pakai SL & risiko 1-2% modal.</div>';
+h+='<div style="font-size:0.64rem;color:#64748b;margin-top:10px;">Forecast probabilistik + pita skenario dari bukti historis. Bukan ramalan pasti - selalu pakai SL & risiko 1-2% modal.</div>';
 box.innerHTML=h;
 }
 var trendEl=document.getElementById('valTrend');
@@ -176,4 +184,4 @@ miniChart(code).then(function(chart){render(code,f,chart);}).catch(function(){re
 },900);});
 if(trendEl)obs.observe(trendEl,{childList:true,characterData:true,subtree:true});
 })();
-/* END onemonth v2 */
+/* END onemonth v3 */
