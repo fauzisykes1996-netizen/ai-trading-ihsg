@@ -1,4 +1,4 @@
-/* duel5.js v5 - Duel 5 Mesin: base anti-korup + voting terstruktur + meter suara sah */
+/* duel5.js v6 - Duel 5 Mesin: voting + meter + ringkasan anti-gantung (timeout & fallback mesin) */
 (function(){
 if(!window.P)return;
 var NL=String.fromCharCode(10);
@@ -85,6 +85,12 @@ throw new Error('Free Fleet tidak tersedia');
 async function callRetry(id,prompt){
 try{return await callEngine(id,prompt);}catch(e){return await callEngine(id,prompt);}
 }
+function withTimeout(p,ms){
+return new Promise(function(resolve,reject){
+var to=setTimeout(function(){reject(new Error('timeout '+Math.round(ms/1000)+' detik'));},ms);
+p.then(function(v){clearTimeout(to);resolve(v);},function(e){clearTimeout(to);reject(e);});
+});
+}
 function block(label,txt,ok,vote){
 var col='red';
 if(ok)col='green';
@@ -155,7 +161,7 @@ h+=block(list[i].label,'Tidak merespon: '+res[i].reason.message,false,null);
 var head=meter(votes);
 head+='<div style="font-size:0.72rem;color:var(--text-muted);margin-bottom:4px;">'+ok.length+'/5 mesin menjawab (voting terstruktur).</div>';
 h=head+h;
-if(ok.length>=2)h+='<button class="btn-copy" style="margin-top:8px;" onclick="summarizeDuel()">🧠 Ringkas Konsensus</button>';
+if(ok.length>=2)h+='<button class="btn-copy" style="margin-top:8px;" id="d5SumBtn" onclick="summarizeDuel()">🧠 Ringkas Konsensus</button>';
 out.innerHTML=h;
 window.__d5ok=ok;
 btn.disabled=false;btn.innerText='⚔️ Jalankan Duel 5 Mesin';
@@ -163,18 +169,34 @@ btn.disabled=false;btn.innerText='⚔️ Jalankan Duel 5 Mesin';
 window.summarizeDuel=async function(){
 var ok=window.__d5ok||[];
 if(ok.length<2)return;
+var btn=document.getElementById('d5SumBtn');
+if(btn&&btn.disabled)return;
+if(btn){btn.disabled=true;btn.innerText='🧠 Merangkum...';}
+var out=document.getElementById('d5Out');
+var old=document.getElementById('d5sumCard');
+if(old)old.remove();
+var d=document.createElement('div');
+d.className='report-card';d.style.marginTop='8px';d.id='d5sumCard';
+d.innerHTML='<div style="font-size:0.72rem;font-weight:800;color:var(--accent);margin-bottom:4px;">🧠 Konsensus</div><div id="d5sumTxt" style="font-size:0.78rem;white-space:pre-wrap;">Merangkum...</div>';
+out.appendChild(d);
+var box=document.getElementById('d5sumTxt');
 var body='Opini analis AI:'+NL;
 for(var i=0;i<ok.length;i++)body+='['+ok[i].en.label+'] '+ok[i].txt+NL;
 body+=NL+'Ringkas: titik SETUJU, titik SELISIH, rekomendasi final 1 kalimat. Maks 80 kata.';
-var out=document.getElementById('d5Out');
-var sid='d5s'+Date.now();
-var d=document.createElement('div');
-d.className='report-card';d.style.marginTop='8px';
-d.innerHTML='<div style="font-size:0.72rem;font-weight:800;color:var(--accent);margin-bottom:4px;">🧠 Konsensus</div><div id="'+sid+'" style="font-size:0.78rem;white-space:pre-wrap;">Merangkum...</div>';
-out.appendChild(d);
-var box=document.getElementById(sid);
-try{var t=await callEngine(ok[0].en.id,body);box.innerHTML=esc(t);}
-catch(e){box.innerHTML='Gagal merangkum: '+esc(e.message);}
+var done=false;
+var maxTry=ok.length<3?ok.length:3;
+for(var k=0;k<maxTry;k++){
+if(done)break;
+try{
+var t=await withTimeout(callEngine(ok[k].en.id,body),45000);
+box.innerHTML=esc(t);
+done=true;
+}catch(e){
+box.innerHTML='Mesin '+ok[k].en.label+' gagal ('+esc(e.message)+') - mencoba mesin berikutnya...';
+}
+}
+if(!done)box.innerHTML='⚠️ Semua mesin gagal merangkum (timeout/kuota). Narasi lengkap tetap ada di atas - atau klik Ringkas sekali lagi nanti.';
+if(btn){btn.disabled=false;btn.innerText='🧠 Ringkas Konsensus';}
 };
 })();
-/* END duel5 v5 */
+/* END duel5 v6 */
