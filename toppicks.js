@@ -1,16 +1,20 @@
-/* toppicks.js v3 - Top Picks: scan 45 saham + track record pick 20 hari + bintang massal ke watchlist */
+/* toppicks.js v4 - Top Picks: universe otomatis IHSG/US + track record + bintang massal */
 (function(){
 if(!window.P||!window.SW)return;
 var SW=window.SW;
-var UNIV=["BBCA","BBRI","BMRI","BBNI","BRIS","TLKM","ISAT","EXCL","ASII","UNVR","ICBP","INDF","KLBF","SIDO","MYOR","AMRT","MAPI","ACES","ERAA","MDKA","ANTM","INCO","TINS","PTBA","ADRO","ITMG","PGAS","MEDC","ESSA","TPIA","BRPT","CPIN","JPFA","SMGR","INDY","JSMR","TBIG","TOWR","GOTO","EMTK","PGEO","BREN","CUAN","AMMN","NCKL"];
-UNIV=UNIV.filter(function(v,i,s){return s.indexOf(v)===i;});
+var ID_UNIV=["BBCA","BBRI","BMRI","BBNI","BRIS","TLKM","ISAT","EXCL","ASII","UNVR","ICBP","INDF","KLBF","SIDO","MYOR","AMRT","MAPI","ACES","ERAA","MDKA","ANTM","INCO","TINS","PTBA","ADRO","ITMG","PGAS","MEDC","ESSA","TPIA","BRPT","CPIN","JPFA","SMGR","INDY","JSMR","TBIG","TOWR","GOTO","EMTK","PGEO","BREN","CUAN","AMMN","NCKL"];
+function currentUniv(){
+if(window.MKT&&window.MKT.mode&&window.MKT.mode()==='US'&&window.MKT.US_UNIV)return window.MKT.US_UNIV.slice();
+return ID_UNIV.slice();
+}
+function mkey(){return window.MKT&&window.MKT.mode?window.MKT.mode():'ID';}
 var anchor=document.getElementById('slOut')?document.getElementById('slOut').closest('.card'):(document.getElementById('scrBtn')?document.getElementById('scrBtn').closest('.card'):null);
 P.card('tab-market',
-'<div class="card-title"><span>🏆 Top Picks 1 Bulan</span><span class="agent-pill master">Auto-Scan 45 Saham</span></div>'+
+'<div class="card-title"><span>🏆 Top Picks 1 Bulan</span><span class="agent-pill master">Auto-Scan 2 Pasar</span></div>'+
 '<button class="btn-copy" style="margin-top:0;" id="tpBtn" onclick="runTopPicks()">🏆 Scan Top Picks Sekarang</button>'+
-'<div id="tpNote" style="font-size:0.7rem;color:var(--text-muted);margin-top:8px;">Scan 45 saham liquid, tampilkan 15 terbaik skor 1-bulan. Pick tersimpan dan dinilai otomatis setelah 20 hari.</div>'+
+'<div id="tpNote" style="font-size:0.7rem;color:var(--text-muted);margin-top:8px;">Universe mengikuti saklar 🇮🇩/🇺🇸 di baris mesin. Pick tersimpan dan dinilai otomatis setelah 20 hari.</div>'+
 '<div id="tpOut" class="hidden" style="margin-top:10px;"></div>',anchor);
-function regimeOfIHSG(IA){
+function regimeOfBench(IA){
 var n=IA.c.length;
 var ma20=SW.sma(IA.c,20),ma50=SW.sma(IA.c,50),rsi=SW.rsi(IA.c,14);
 var p=IA.c[n-1],m20=ma20[n-1],m50=ma50[n-1],r=rsi[n-1];
@@ -19,7 +23,7 @@ if(p>m50&&r>=40&&r<=60)return 10;
 if(p<m20&&p>m50)return 5;
 return 0;
 }
-function scoreStock(code,candle,ihsgRet60,regPts){
+function scoreStock(code,candle,benchRet60,regPts){
 var A=SW.arrays(candle);var n=A.c.length;
 if(n<120)return null;
 var ma50=SW.sma(A.c,50),ma100=SW.sma(A.c,100);
@@ -31,7 +35,7 @@ var tren=0;
 if(price>m50&&m50>m100)tren+=20;else if(price>m50)tren+=10;
 if(slope50>1)tren+=10;else if(slope50>0)tren+=5;
 var ret60=(price/A.c[n-61]-1)*100;
-var rel=ret60-ihsgRet60;
+var rel=ret60-benchRet60;
 var mom=0;
 if(ret60>0)mom+=12;
 if(rel>3)mom+=13;else if(rel>0)mom+=8;else if(rel>-3)mom+=4;
@@ -120,33 +124,35 @@ if(n===0){toast('Tidak ada pick >=75 untuk dibintangi.');return;}
 toast('⭐ '+n+' saham ditambah ke watchlist.');
 };
 window.runTopPicks=async function(){
-var btn=document.getElementById('tpBtn');btn.disabled=true;btn.innerText='Scanning 45 saham...';
+var btn=document.getElementById('tpBtn');btn.disabled=true;btn.innerText='Scanning...';
 var out=document.getElementById('tpOut');out.classList.remove('hidden');out.innerHTML='<div class="skel-box" style="height:90px"></div>';
 try{
+var UNIV=currentUniv();
 var hist=await resolveHist();
 var tr=trackLine(hist);
-var cache=lsJSON('toppicks_cache',null);
-if(cache&&cache.t&&Date.now()-cache.t<600000){render(cache.rows,tr);note('Cache '+new Date(cache.t).toLocaleTimeString('id-ID')+' (10 menit).');return;}
+var ck='toppicks_cache_'+mkey();
+var cache=lsJSON(ck,null);
+if(cache&&cache.t&&Date.now()-cache.t<600000){render(cache.rows,tr);note('Cache '+new Date(cache.t).toLocaleTimeString('id-ID')+' (10 menit) - pasar '+mkey()+'.');return;}
 var ij=await fetchChart('^JKSE','1y');
 var IA=SW.arrays(ij.chart.result[0]);
-var ihsgRet60=(IA.c[IA.c.length-1]/IA.c[IA.c.length-61]-1)*100;
-var regPts=regimeOfIHSG(IA);
+var benchRet60=(IA.c[IA.c.length-1]/IA.c[IA.c.length-61]-1)*100;
+var regPts=regimeOfBench(IA);
 var settled=await Promise.allSettled(UNIV.map(function(c){return SW.candle(c,'1y');}));
 var rows=[];
 settled.forEach(function(res,i){
 if(res.status!=='fulfilled')return;
-var sc=scoreStock(UNIV[i],res.value,ihsgRet60,regPts);
+var sc=scoreStock(UNIV[i],res.value,benchRet60,regPts);
 if(sc&&sc.score>=60)rows.push({code:UNIV[i],score:sc.score,verdict:sc.verdict,col:sc.col,ret60:sc.ret60,rel:sc.rel,ratio:sc.ratio,px:sc.px});
 });
 rows.sort(function(a,b){return b.score-a.score;});
 rows=rows.slice(0,15);
-saveLS('toppicks_cache',{t:Date.now(),rows:rows});
+saveLS(ck,{t:Date.now(),rows:rows});
 var hist2=lsJSON('toppicks_hist',[]);
-hist2.push({t:Date.now(),picks:rows.map(function(r){return {c:r.code,px:r.px,s:r.score};}),res:null});
+hist2.push({t:Date.now(),m:mkey(),picks:rows.map(function(r){return {c:r.code,px:r.px,s:r.score};}),res:null});
 if(hist2.length>40)hist2=hist2.slice(hist2.length-40);
 saveLS('toppicks_hist',hist2);
 render(rows,tr);
-note('Diperbarui '+new Date().toLocaleTimeString('id-ID')+' - regime IHSG '+regPts+'/15 poin. '+rows.length+' saham lolos >=60.');
+note('Diperbarui '+new Date().toLocaleTimeString('id-ID')+' - pasar '+mkey()+' - benchmark '+(window.MKT?window.MKT.bench():'IHSG')+' '+regPts+'/15 poin. '+rows.length+' lolos >=60.');
 }catch(e){out.innerHTML='<div style="color:var(--red);">Scan gagal: '+esc(e.message)+'</div>';}
 finally{btn.disabled=false;btn.innerText='🏆 Scan Top Picks Sekarang';}
 };
@@ -156,7 +162,7 @@ var out=document.getElementById('tpOut');window.__tpRows=rows;
 var h='';
 if(tr)h+='<div style="font-size:0.72rem;padding:6px 8px;border:1px solid var(--card-border);border-radius:10px;background:var(--card-bg);margin-bottom:8px;color:var(--text-muted);">'+tr+'</div>';
 if(!rows.length){
-h+='<div style="color:var(--yellow);font-size:0.8rem;">Tidak ada saham dengan skor >=60 saat ini. Pasar sedang tidak ramah - disiplin menunggu juga posisi.</div>';
+h+='<div style="color:var(--yellow);font-size:0.8rem;">Tidak ada saham dengan skor >=60 saat ini di pasar '+mkey()+'. Disiplin menunggu juga posisi.</div>';
 out.innerHTML=h;return;
 }
 h+='<button class="btn-copy" style="margin-top:0;margin-bottom:8px;" onclick="starPicks()">⭐ Simpan semua skor >=75 ke Watchlist</button>';
@@ -166,7 +172,7 @@ h+='<div class="mkt-row" style="cursor:pointer;" onclick="tpPick('+i+')">';
 h+='<span><strong>'+r.code+'</strong> <span style="color:var(--text-muted);font-size:0.68rem;">'+r.verdict+' - 60h '+(r.ret60>=0?'+':'')+r.ret60.toFixed(1)+'% - vol '+r.ratio.toFixed(1)+'x</span></span>';
 h+='<span style="font-family:var(--mono);font-weight:900;font-size:1.05rem;" class="'+r.col+'">'+r.score+'</span></div>';
 }
-h+='<div class="src-note">Skor = tren menengah + momentum vs IHSG + minat volume + regime + tape. Klik baris untuk Proses & konfirmasi lengkap (Forecast, Grader, Bandar, Money Flow).</div>';
+h+='<div class="src-note">Klik baris untuk Proses & konfirmasi lengkap (Forecast, Grader, Bandar, Money Flow).</div>';
 out.innerHTML=h;
 }
 window.tpPick=function(i){
@@ -180,4 +186,4 @@ for(var b=0;b<btns.length;b++){if((btns[b].innerText||'').trim()==='Proses'){btn
 },350);
 };
 })();
-/* END toppicks v3 */
+/* END toppicks v4 */
