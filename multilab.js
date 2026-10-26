@@ -1,15 +1,22 @@
-/* multilab.js v2 - Ranking strategi + Uji Robustness 3 varian SL (anti-overfit) */
+/* multilab.js v3 - Ranking strategi + Uji Robustness, universe otomatis IHSG/US */
 (function(){
 if(!window.P||!window.SW)return;
 var SW=window.SW;
-var UNIV=[].concat(typeof SCR_UNIVERSE!=='undefined'?SCR_UNIVERSE:[]).concat(["BBCA","BBRI","BMRI","TLKM","ASII","ANTM","PTBA","ADMR","NCKL","PGEO","AMMN","CUAN","MDKA","TPIA","KLBF","ICBP","UNVR","GOTO","BUKA","BRPT","MEDC","INDY","TINS","SMGR"]);
-UNIV=UNIV.filter(function(v,i,s){return s.indexOf(v)===i;}).slice(0,24);
+var ID_EXTRA=["BBCA","BBRI","BMRI","TLKM","ASII","ANTM","PTBA","ADMR","NCKL","PGEO","AMMN","CUAN","MDKA","TPIA","KLBF","ICBP","UNVR","GOTO","BUKA","BRPT","MEDC","INDY","TINS","SMGR"];
+function currentUniv(){
+if(window.MKT&&window.MKT.mode&&window.MKT.mode()==='US'&&window.MKT.US_UNIV)return window.MKT.US_UNIV.slice(0,24);
+var base=[];
+if(typeof SCR_UNIVERSE!=='undefined')base=base.concat(SCR_UNIVERSE);
+base=base.concat(ID_EXTRA);
+return base.filter(function(v,i,s){return s.indexOf(v)===i;}).slice(0,24);
+}
+function mkey(){return window.MKT&&window.MKT.mode?window.MKT.mode():'ID';}
 var anchor=document.getElementById('swLabOut')?document.getElementById('swLabOut').closest('.card'):null;
 P.card('tab-analysis',
 '<div class="card-title"><span>📊 Lab Multi-Saham</span><span class="agent-pill tech">Ranking + Robustness</span></div>'+
 '<button class="btn-copy" style="margin-top:0;" id="mlBtn" onclick="runMultiLab()">📊 Scan Ranking Strategi (24 saham)</button>'+
 '<button class="btn-copy" style="margin-top:6px;" id="rbBtn" onclick="runRobust()">🧪 Uji Robustness (saham yang diproses)</button>'+
-'<div id="mlNote" style="font-size:0.7rem;color:var(--text-muted);margin-top:8px;">Ranking = backtest 2 strategi x 24 saham. Robustness = uji 3 varian stop loss; edge sah hanya jika positif di semua varian (ROBUST), bukan cantik di satu setting (RAPUH).</div>'+
+'<div id="mlNote" style="font-size:0.7rem;color:var(--text-muted);margin-top:8px;">Universe mengikuti saklar 🇮🇩/🇺🇸. Robustness = uji 3 varian SL; edge sah hanya jika positif di semua varian.</div>'+
 '<div id="mlOut" class="hidden" style="margin-top:10px;"></div>',anchor);
 function btP(c,h,l,o,mh,tp,slM){var ma20=SW.sma(c,20),ma50=SW.sma(c,50),rsi=SW.rsi(c,14),adx=SW.adx(h,l,c,14),atr=SW.atr(h,l,c,14);var tr=[];var pos=null;for(var i=50;i<c.length-1;i++){if(!pos){if(ma20[i]&&ma50[i]&&adx[i]&&rsi[i]&&atr[i]&&c[i]>ma20[i]&&ma20[i]>ma50[i]&&adx[i]>=20&&rsi[i]>=40&&rsi[i]<=65){var d=(c[i]-ma20[i])/ma20[i]*100;if(d>=-1&&d<=3)pos={entry:o[i+1],ei:i+1,sl:Math.min(SW.lowest(l,i-9,i+1)-atr[i]*0.3,o[i+1]-atr[i]*slM*0.6)};}}else{var held=i-pos.ei;var ex=null;if(l[i]<=pos.sl){ex=pos.sl;}else if(h[i]>=pos.entry+(pos.entry-pos.sl)*tp){ex=pos.entry+(pos.entry-pos.sl)*tp;}else if(held>=mh){ex=o[i+1]<c[i]?o[i+1]:c[i];}if(ex!=null){tr.push((ex-pos.entry)/pos.entry-P.fee);pos=null;}}}return tr;}
 function btD(c,h,l,o,mh,tp,slM){var ma50=SW.sma(c,50),atr=SW.atr(h,l,c,14);var tr=[];var pos=null;for(var i=21;i<c.length-1;i++){if(!pos){var hh=SW.highest(h,i-20,i);if(ma50[i]&&atr[i]&&c[i]>ma50[i]&&c[i]>=hh*0.999)pos={entry:o[i+1],ei:i+1,sl:SW.lowest(l,i-19,i+1)-atr[i]*0.15*slM};}else{var held=i-pos.ei;var ex=null;if(l[i]<=pos.sl){ex=pos.sl;}else if(h[i]>=pos.entry+(pos.entry-pos.sl)*tp){ex=pos.entry+(pos.entry-pos.sl)*tp;}else if(held>=mh){ex=o[i+1]<c[i]?o[i+1]:c[i];}if(ex!=null){tr.push((ex-pos.entry)/pos.entry-P.fee);pos=null;}}}return tr;}
@@ -18,8 +25,10 @@ window.runMultiLab=async function(){
 var btn=document.getElementById('mlBtn');btn.disabled=true;btn.innerText='Scanning 24 saham...';
 var out=document.getElementById('mlOut');out.classList.remove('hidden');out.innerHTML='<div class="skel-box" style="height:80px"></div>';
 try{
-var cache=lsJSON('multilab_cache',null);
-if(cache&&cache.t&&Date.now()-cache.t<600000){render(cache.rows);note('Cache '+new Date(cache.t).toLocaleTimeString('id-ID')+' (10 menit).');return;}
+var UNIV=currentUniv();
+var ck='multilab_cache_'+mkey();
+var cache=lsJSON(ck,null);
+if(cache&&cache.t&&Date.now()-cache.t<600000){render(cache.rows);note('Cache '+new Date(cache.t).toLocaleTimeString('id-ID')+' - pasar '+mkey()+'.');return;}
 var settled=await Promise.allSettled(UNIV.map(function(c){return SW.candle(c,'2y');}));
 var rows=[];
 settled.forEach(function(res,i){
@@ -33,9 +42,9 @@ if(rD&&rD.n>=4&&(!best||rD.pf>best.pf)){best=rD;strat='donchian';}
 if(best)rows.push({code:UNIV[i],strat:strat,n:best.n,pf:best.pf,exp:best.exp,wr:best.wr});
 });
 rows.sort(function(a,b){return b.pf-a.pf||b.exp-a.exp;});
-saveLS('multilab_cache',{t:Date.now(),rows:rows});
+saveLS(ck,{t:Date.now(),rows:rows});
 render(rows);
-note('Diperbarui '+new Date().toLocaleTimeString('id-ID')+' - '+rows.length+' saham punya trade cukup.');
+note('Diperbarui '+new Date().toLocaleTimeString('id-ID')+' - pasar '+mkey()+' - '+rows.length+' saham punya trade cukup.');
 }catch(e){out.innerHTML='<div style="color:var(--red);">Scan gagal: '+esc(e.message)+'</div>';}
 finally{btn.disabled=false;btn.innerText='📊 Scan Ranking Strategi (24 saham)';}
 };
@@ -65,18 +74,17 @@ h+='<div style="display:flex;justify-content:space-between;font-size:0.72rem;pad
 }
 var verdict='RAPUH 🔴';var vcol='red';
 if(pfs.length===3){
-var allPos=true;var allGood=true;var sumExp=0;
+var allPos=true;var allGood=true;
 for(var p=0;p<3;p++){
 if(pfs[p]<1.2)allGood=false;
 if(exps[p]<=0)allPos=false;
-sumExp+=exps[p];
 }
 if(allGood&&allPos){verdict='ROBUST 🟢 - edge tahan di semua varian, layak dipercaya';vcol='green';}
 else if(allPos){verdict='SEDANG 🟠 - untung di semua varian tapi PF tipis, ukuran kecil';vcol='yellow';}
 }
 h+='<div style="font-size:0.74rem;font-weight:800;color:var('+vcol+');margin-top:6px;">'+verdict+'</div>';
 }
-h+='<div class="src-note">ROBUST = strategi tidak bergantung satu setting stop loss. RAPUH = hasil cantik hanya di satu varian (overfit) - jangan dipakai uang sungguhan.</div>';
+h+='<div class="src-note">ROBUST = tidak bergantung satu setting SL. RAPUH = cantik di satu varian saja (overfit).</div>';
 out.innerHTML=h;
 note('Uji robustness '+code+' selesai '+new Date().toLocaleTimeString('id-ID')+'.');
 }catch(e){out.innerHTML='<div style="color:var(--red);">Uji gagal: '+esc(e.message)+'</div>';}
@@ -85,7 +93,7 @@ finally{btn.disabled=false;btn.innerText='🧪 Uji Robustness (saham yang dipros
 function note(t){var e=document.getElementById('mlNote');if(e)e.innerText=t;}
 function render(rows){
 var out=document.getElementById('mlOut');window.__mlRows=rows;
-if(!rows.length){out.innerHTML='<div style="color:var(--yellow);font-size:0.8rem;">Tidak ada saham dengan trade cukup (>=4) dalam 2 tahun.</div>';return;}
+if(!rows.length){out.innerHTML='<div style="color:var(--yellow);font-size:0.8rem;">Tidak ada saham dengan trade cukup (>=4) dalam 2 tahun di pasar '+mkey()+'.</div>';return;}
 var h='';
 for(var i=0;i<rows.length;i++){
 var r=rows[i];
@@ -108,4 +116,4 @@ if(window.runSwingLab)window.runSwingLab();
 },400);
 };
 })();
-/* END multilab v2 */
+/* END multilab v3 */
