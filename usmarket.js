@@ -1,4 +1,4 @@
-/* usmarket.js v2 - Saklar IHSG/US + universe US + fundamental US + label benchmark */
+/* usmarket.js v3 - Saklar IHSG/US + penambal URL menyeluruh (input, body, symbols) + universe US + label */
 (function(){
 if(!window.P)return;
 var KEY='ihsg_market';
@@ -6,6 +6,21 @@ var US_UNIV=["AAPL","MSFT","NVDA","AMZN","GOOGL","META","TSLA","AVGO","AMD","COS
 function mode(){return localStorage.getItem(KEY)||'ID';}
 function benchLabel(){return mode()==='US'?'S&P 500':'IHSG';}
 window.MKT={mode:mode,set:setMode,US_UNIV:US_UNIV,bench:benchLabel};
+function patchUrl(s){
+if(typeof s!=='string')return s;
+if(mode()!=='US')return s;
+var out=s;
+if(out.indexOf('^JKSE')>=0)out=out.split('^JKSE').join('^GSPC');
+if(out.indexOf('.JK')>=0){
+out=out.split('.JK%3F').join('%3F');
+out=out.split('.JK?').join('?');
+out=out.split('.JK%26').join('%26');
+out=out.split('.JK&').join('&');
+out=out.split('.JK%2C').join('%2C');
+out=out.split('.JK,').join(',');
+}
+return out;
+}
 var origFC=window.fetchChart;
 window.fetchChart=function(symbol,range,interval){
 var s=symbol;
@@ -17,9 +32,16 @@ return origFC(s,range,interval);
 };
 var origFetch=window.fetch;
 window.fetch=function(input,init){
-if(mode()==='US'&&typeof input==='string'&&input.indexOf('quoteSummary')>=0){
-if(input.indexOf('.JK%3F')>=0)input=input.replace('.JK%3F','%3F');
-else if(input.indexOf('.JK?')>=0)input=input.replace('.JK?','?');
+if(mode()==='US'){
+if(typeof input==='string')input=patchUrl(input);
+if(init&&typeof init.body==='string'){
+var nb=patchUrl(init.body);
+if(nb!==init.body){
+init={};
+for(var k in init)init[k]=init[k];
+init.body=nb;
+}
+}
 }
 return origFetch(input,init);
 };
@@ -28,8 +50,8 @@ localStorage.setItem(KEY,m);
 paint();
 banner();
 renameSvg();
-if(m==='US')toast('🇺🇸 Mode US: ticker US, benchmark S&P 500, fundamental US aktif, scanner pakai universe US.');
-else toast('🇮 Mode IHSG aktif kembali.');
+if(m==='US')toast('🇺 Mode US: ticker US, benchmark S&P 500, fundamental US aktif, scanner pakai universe US.');
+else toast('🇮🇩 Mode IHSG aktif kembali.');
 }
 function paint(){
 var a=document.getElementById('mktID');
@@ -50,7 +72,7 @@ if(mode()!=='US')return;
 var div=document.createElement('div');
 div.id='usBanner';
 div.style.cssText='font-size:0.7rem;padding:8px 10px;border:1px solid rgba(56,189,248,.4);border-radius:12px;background:rgba(56,189,248,.08);color:var(--accent);margin-bottom:10px;';
-div.innerHTML='🇺 <strong>MODE US AKTIF</strong> - benchmark kartu = S&P 500, fundamental Yahoo US aktif, scanner 🏆/📊 memakai universe US.';
+div.innerHTML='🇺🇸 <strong>MODE US AKTIF</strong> - benchmark kartu = S&P 500, fundamental Yahoo US aktif, scanner 🏆/ memakai universe US.';
 tab.insertBefore(div,tab.firstChild);
 }
 function renameSvg(){
@@ -82,4 +104,4 @@ mo._t=setTimeout(renameSvg,400);
 });
 if(document.body)mo.observe(document.body,{childList:true,subtree:true});
 })();
-/* END usmarket v2 */
+/* END usmarket v3 */
