@@ -1,4 +1,4 @@
-/* weekrev.js v3 - Review Mingguan: statistik + aturan pribadi + kurva ekuitas jurnal vs IHSG (ujian alpha) */
+/* weekrev.js v4 - Review: statistik + kurva ekuitas + SKOR DISIPLIN & harga pelanggaran + aturan pribadi */
 (function(){
 if(!window.P)return;
 var NL=String.fromCharCode(10);
@@ -7,7 +7,7 @@ var anchor=tab?tab.querySelector('.card'):null;
 P.card('tab-jurnal',
 '<div class="card-title"><span>📆 Review Mingguan AI</span><span class="agent-pill master">Jurnal jadi Insight</span></div>'+
 '<button class="btn-copy" style="margin-top:0;" id="wrBtn" onclick="runWeekRev()">📆 Review Minggu Ini</button>'+
-'<div id="wrOut" style="font-size:0.8rem;color:var(--text-muted);margin-top:8px;">Statistik 7 hari + kurva ekuitas jurnal vs IHSG + narasi AI + aturan pribadi yang aktif di Grader.</div>',anchor);
+'<div id="wrOut" style="font-size:0.8rem;color:var(--text-muted);margin-top:8px;">Statistik 7 hari + kurva ekuitas vs IHSG + skor disiplin (harga pelanggaran) + aturan pribadi aktif di Grader.</div>',anchor);
 function getJournal(){
 var J=window.journal;
 if(Array.isArray(J))return J;
@@ -36,6 +36,38 @@ var avgW=wins.length?wins.reduce(function(a,b){return a+b;},0)/wins.length:0;
 var avgL=losses.length?losses.reduce(function(a,b){return a+b;},0)/losses.length:0;
 var payoff=avgL!==0?Math.abs(avgW/avgL):0;
 return{n:n,wr:w/n*100,avg:sum/n,best:best,worst:worst,bySetup:bySetup,avgW:avgW,avgL:avgL,payoff:payoff};
+}
+function adherence(){
+var J=getJournal();
+var log=lsJSON('ihsg_grader_log',[]);
+if(!J.length||!log.length)return null;
+var comp=[],viol=[],qViol=[],tViol=[];
+for(var i=0;i<J.length;i++){
+var e=J[i];
+if(e.outcome==null||!e.t||!e.d)continue;
+var best=null;
+for(var k=0;k<log.length;k++){
+var L=log[k];
+if(L.c!==e.t)continue;
+if(L.t>e.d)continue;
+if(e.d-L.t>10*86400000)continue;
+if(!best||L.t>best.t)best=L;
+}
+if(!best)continue;
+var badQ=best.s<60;
+var badT=best.tm!=null&&best.tm<60;
+if(badQ||badT){
+viol.push(e.outcome);
+if(badQ)qViol.push(e.outcome);
+if(badT)tViol.push(e.outcome);
+}else comp.push(e.outcome);
+}
+if(comp.length+viol.length<4)return null;
+function avg(a){if(!a.length)return null;var s=0;for(var i=0;i<a.length;i++)s+=a[i];return s/a.length;}
+var ac=avg(comp);var av=avg(viol);
+var cost=null;
+if(ac!=null&&av!=null)cost=(av-ac)*viol.length;
+return {nC:comp.length,nV:viol.length,ac:ac,av:av,cost:cost,nQ:qViol.length,nT:tViol.length,aQ:avg(qViol),aT:avg(tViol)};
 }
 async function equityCurve(){
 var J=[];
@@ -141,6 +173,7 @@ if(!st){out.innerHTML='<div style="color:var(--yellow);font-size:0.8rem;">Belum 
 out.innerHTML='<div class="skel-box" style="height:70px"></div>';
 var rules=extractRules();
 saveLS('ihsg_rules',rules);
+var adh=adherence();
 var curve=null;
 try{curve=await equityCurve();}catch(e){curve=null;}
 var L=[];
@@ -149,9 +182,12 @@ L.push('Rata menang '+(st.avgW>=0?'+':'')+st.avgW.toFixed(2)+'% vs rata kalah '+
 L.push('Terbaik: '+st.best.t+' '+(st.best.o>=0?'+':'')+st.best.o.toFixed(2)+'%. Terburuk: '+st.worst.t+' '+st.worst.o.toFixed(2)+'%.');
 var ks=Object.keys(st.bySetup);
 for(var i=0;i<ks.length;i++){var b=st.bySetup[ks[i]];L.push('Setup '+ks[i]+': '+b.n+' entri, WR '+(b.w/b.n*100).toFixed(0)+'%, rata '+(b.s/b.n>=0?'+':'')+(b.s/b.n).toFixed(2)+'%.');}
-if(curve)L.push('KURVA EKUITAS: total jurnal '+(curve.you[curve.you.length-1]>=0?'+':'')+curve.you[curve.you.length-1].toFixed(1)+'% vs IHSG '+(curve.mkt[curve.mkt.length-1]>=0?'+':'')+curve.mkt[curve.mkt.length-1].toFixed(1)+'% pada periode sama → alpha '+(curve.alpha>=0?'+':'')+curve.alpha.toFixed(1)+'%.');
+if(adh){
+L.push('DISIPLIN: entry patuh '+adh.nC+' (rata '+(adh.ac!=null?(adh.ac>=0?'+':'')+adh.ac.toFixed(1)+'%':'-')+') vs melanggar '+adh.nV+' (rata '+(adh.av!=null?(adh.av>=0?'+':'')+adh.av.toFixed(1)+'%':'-')+'); pelanggaran kualitas '+adh.nQ+'x, pelanggaran timing '+adh.nT+'x.');
+}
+if(curve)L.push('KURVA EKUITAS: total jurnal '+(curve.you[curve.you.length-1]>=0?'+':'')+curve.you[curve.you.length-1].toFixed(1)+'% vs IHSG '+(curve.mkt[curve.mkt.length-1]>=0?'+':'')+curve.mkt[curve.mkt.length-1].toFixed(1)+'% → alpha '+(curve.alpha>=0?'+':'')+curve.alpha.toFixed(1)+'%.');
 if(rules.length)L.push('ATURAN PRIBADI AKTIF: '+rules.join(' '));
-var prompt='Anda coach trading disiplin untuk swing trader IHSG. Statistik jurnal 7 hari:'+NL+L.join(NL)+NL+NL+'Tulis review: (1) satu kalimat apresiasi jujur, (2) dua pola yang perlu diperbaiki berbasis angka, (3) satu aturan disiplin konkret minggu depan. Jika ada KURVA EKUITAS, nilai apakah alpha positif/negatif dan apa penyebab utamanya. Jika ada ATURAN PRIBADI, nilai kepatuhan minggu ini. Maks 130 kata.';
+var prompt='Anda coach trading disiplin untuk swing trader IHSG. Statistik jurnal 7 hari:'+NL+L.join(NL)+NL+NL+'Tulis review: (1) satu kalimat apresiasi jujur, (2) dua pola yang perlu diperbaiki berbasis angka, (3) satu aturan disiplin konkret minggu depan. Jika ada DISIPLIN, hitung berapa harga pelanggaran dan tekankan itu. Jika ada KURVA EKUITAS nilai alpha. Maks 130 kata.';
 var narrative='';
 try{narrative=await window.callLLM(prompt);}catch(e){narrative='(AI gagal: '+e.message+') Ringkasan:'+NL+L.join(NL);}
 var h='<div class="metric-grid" style="margin-bottom:8px;">';
@@ -160,12 +196,21 @@ h+='<div class="metric-box"><div class="metric-label">Win Rate</div><div class="
 h+='<div class="metric-box"><div class="metric-label">Rata-rata</div><div class="metric-value '+(st.avg>=0?'green':'red')+'">'+(st.avg>=0?'+':'')+st.avg.toFixed(2)+'%</div></div>';
 h+='<div class="metric-box"><div class="metric-label">Payoff</div><div class="metric-value '+(st.payoff>=1.5?'green':'yellow')+'">'+st.payoff.toFixed(2)+'</div></div>';
 h+='</div>';
+if(adh){
+var dcol=adh.nV===0?'green':(adh.cost!=null&&adh.cost<0?'red':'yellow');
+h+='<div style="font-size:0.74rem;padding:8px 10px;border:1px solid var(--card-border);border-radius:12px;background:var(--card-bg);margin-bottom:8px;">';
+h+='<div style="font-weight:800;color:#fff;margin-bottom:2px;">🧭 Skor Disiplin</div>';
+h+='<div style="color:var(--text-muted);">Patuh: '+adh.nC+' entry'+(adh.ac!=null?' (rata '+(adh.ac>=0?'+':'')+adh.ac.toFixed(1)+'%)':'')+' • Melanggar: '+adh.nV+' entry'+(adh.av!=null?' (rata '+(adh.av>=0?'+':'')+adh.av.toFixed(1)+'%)':'')+'</div>';
+h+='<div style="color:var(--text-muted);">Pelanggaran kualitas (<60): '+adh.nQ+'x • pelanggaran timing (<60): '+adh.nT+'x</div>';
+if(adh.cost!=null)h+='<div style="font-weight:800;color:var('+dcol+');margin-top:2px;">Harga pelanggaran: '+(adh.cost>=0?'+':'')+adh.cost.toFixed(1)+'% cumulative '+(adh.cost<0?'- itulah biaya ketidakdisiplinan Anda.':'- pelanggaran kebetulan untung; jangan terbiasa.')+'</div>';
+h+='</div>';
+}
 if(curve){
 var acol=curve.alpha>=0?'green':'red';
 h+='<div style="font-size:0.74rem;padding:8px 10px;border:1px solid var(--card-border);border-radius:12px;background:var(--card-bg);margin-bottom:8px;">';
 h+='<div style="font-weight:800;color:#fff;margin-bottom:2px;">📈 Kurva ekuitas jurnal vs IHSG ('+curve.n+' trade)</div>';
 h+=eqSvg(curve.you,curve.mkt);
-h+='<div style="font-size:0.72rem;margin-top:4px;color:var(--'+acol+');">Alpha Anda: '+(curve.alpha>=0?'+':'')+curve.alpha.toFixed(1)+'% '+(curve.alpha>=0?'- keputusan Anda menambah nilai di atas pasar.':'- keputusan Anda masih kalah dari beli-tahan IHSG; perbaiki seleksi & timing.')+'</div>';
+h+='<div style="font-size:0.72rem;margin-top:4px;color:var('+acol+');">Alpha Anda: '+(curve.alpha>=0?'+':'')+curve.alpha.toFixed(1)+'% '+(curve.alpha>=0?'- keputusan Anda menambah nilai di atas pasar.':'- keputusan Anda masih kalah dari beli-tahan IHSG; perbaiki seleksi & timing.')+'</div>';
 h+='</div>';
 }
 if(rules.length){
@@ -189,4 +234,4 @@ out.innerHTML=h2;
 }
 },1200);
 })();
-/* END weekrev v3 */
+/* END weekrev v4 */
