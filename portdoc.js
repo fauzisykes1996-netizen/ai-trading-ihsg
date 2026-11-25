@@ -1,4 +1,4 @@
-/* portdoc.js v5 - Doctor kritis + stress test IHSG + resep lot konkret (menggantikan poheat.js) */
+/* portdoc.js v6 - Doctor kritis + stress test + resep berjadwal + simulasi What-if Add */
 (function(){
 if(!window.P||!window.SW)return;
 var SW=window.SW;
@@ -57,6 +57,11 @@ return [];
 function codeOf(e){return e.t||e.code||e.ticker||e.symbol||e.kode||'';}
 function lotOf(e){return parseFloat(e.lot||e.qty||e.shares||e.jumlah)||0;}
 function avgOf(e){return parseFloat(e.avg||e.entry||e.price||e.buy||e.harga||e.avgPrice)||0;}
+function buildList(porto){
+var list=[];
+for(var i=0;i<porto.length;i++){var e=porto[i];var c=cleanCode(codeOf(e));var l=lotOf(e);var a=avgOf(e);if(c&&l>0&&a>0)list.push({t:c,lot:l,avg:a});}
+return list;
+}
 function rets60(c){var r=[];var s=Math.max(1,c.length-60);for(var i=s;i<c.length;i++){if(c[i-1])r.push((c[i]-c[i-1])/c[i-1]);}return r;}
 function corr(a,b){var n=Math.min(a.length,b.length);if(n<10)return 0;var ma=0,mb=0;for(var i=0;i<n;i++){ma+=a[i];mb+=b[i];}ma/=n;mb/=n;var num=0,da=0,db=0;for(var j=0;j<n;j++){var x=a[j]-ma,y=b[j]-mb;num+=x*y;da+=x*x;db+=y*y;}if(da===0||db===0)return 0;return num/Math.sqrt(da*db);}
 function betaOf(a,b){var n=Math.min(a.length,b.length);if(n<10)return 1;var ma=0,mb=0;for(var i=0;i<n;i++){ma+=a[i];mb+=b[i];}ma/=n;mb/=n;var num=0,den=0;for(var j=0;j<n;j++){num+=(a[j]-ma)*(b[j]-mb);den+=(b[j]-mb)*(b[j]-mb);}if(den===0)return 1;return num/den;}
@@ -99,13 +104,13 @@ if(p>m20&&m20>m50&&r>=50&&r<=70)return 'BULLISH';if(p>m50&&r>=40&&r<=60)return '
 var tab=document.getElementById('tab-porto');
 var anchor=tab?tab.querySelector('.card'):null;
 P.card('tab-porto','<div class="card-title"><span>🌡️ Portfolio Heat</span><span class="agent-pill tech">Risiko Agregat</span></div><button class="btn-copy" style="margin-top:0;" id="phBtn" onclick="runHeat()">🌡️ Hitung Portfolio Heat</button><div id="phOut" style="font-size:0.8rem;color:var(--text-muted);margin-top:8px;">Total risiko bila semua Stop Loss (2xATR) tersentuh bersamaan + deteksi posisi berkorelasi tinggi.</div>',anchor);
-P.card('tab-porto','<div class="card-title"><span>🩺 Portfolio Doctor</span><span class="agent-pill master">AI Risk Manager Kritis</span></div><button class="btn-copy" style="margin-top:0;" id="pdBtn" onclick="runPortDoc()">🩺 Minta Review AI</button><div id="pdOut" style="font-size:0.8rem;color:var(--text-muted);margin-top:8px;">Tesis teknikal+fundamental per posisi + stress test IHSG + resep lot konkret, lalu verdict HOLD/ADD/TRIM/EXIT dari AI.</div>',document.getElementById('phOut').closest('.card'));
+P.card('tab-porto','<div class="card-title"><span>🩺 Portfolio Doctor</span><span class="agent-pill master">AI Risk Manager Kritis</span></div><button class="btn-copy" style="margin-top:0;" id="pdBtn" onclick="runPortDoc()">🩺 Minta Review AI</button><div id="pdOut" style="font-size:0.8rem;color:var(--text-muted);margin-top:8px;">Tesis teknikal+fundamental per posisi + stress test + resep berjadwal + verdict HOLD/ADD/TRIM/EXIT.</div><div style="display:flex;gap:6px;margin-top:8px;align-items:center;"><input id="wiLot" type="number" min="1" value="5" class="fv-input" style="width:70px;margin-top:0;"><button class="btn-copy" style="margin-top:0;" onclick="runWhatIf()">🧮 Simulasi Add saham diproses</button></div><div id="wiOut" style="font-size:0.78rem;color:var(--text-muted);margin-top:8px;"></div>',document.getElementById('phOut').closest('.card'));
 window.runHeat=async function(){
 var out=document.getElementById('phOut');
 var porto=getPorto();
 if(!porto.length){out.innerHTML='<div style="color:var(--yellow);font-size:0.8rem;">Portfolio kosong (sumber: '+(lastSrc||'tidak ketemu')+'). Scroll agar kartu Portfolio Saya terlihat, coba lagi.</div>';return;}
 out.innerHTML='<div class="skel-box" style="height:60px"></div>';
-var list=[];for(var i0=0;i0<porto.length;i0++){var e0=porto[i0];var c0=cleanCode(codeOf(e0));var l0=lotOf(e0);var a0=avgOf(e0);if(c0&&l0>0&&a0>0)list.push({t:c0,lot:l0,avg:a0});}
+var list=buildList(porto);
 var modal=0;for(var i=0;i<list.length;i++)modal+=list[i].lot*100*list[i].avg;
 if(!list.length||modal<=0){out.innerHTML='<div style="color:var(--yellow);font-size:0.8rem;">Data posisi tidak lengkap.</div>';return;}
 var settled=await Promise.allSettled(list.map(function(p){return SW.candle(p.t,'1y');}));
@@ -124,7 +129,7 @@ var pairs=[];
 for(var a=0;a<rows.length;a++){for(var b=a+1;b<rows.length;b++){var c=corr(rows[a].rets,rows[b].rets);if(c>0.7)pairs.push(rows[a].t+' x '+rows[b].t+' ('+c.toFixed(2)+')');}}
 var col=heat<3?'green':(heat<=6?'yellow':'red');
 var verdict=heat<3?'AMAN - ruang tambah posisi terbuka':(heat<=6?'SEDANG - hati-hati menambah posisi':'PANAS - kurangi ukuran atau tambah hedge');
-var h='<div style="display:flex;align-items:center;gap:14px;margin-bottom:10px;"><div style="font-family:var(--mono);font-size:2rem;font-weight:900;color:var(--'+col+');">'+heat.toFixed(1)+'%</div><div><div style="font-weight:800;color:var(--'+col+');">'+verdict+'</div><div style="font-size:0.68rem;color:var(--text-muted);margin-top:2px;">Sumber: '+(lastSrc||'-')+'</div></div></div>';
+var h='<div style="display:flex;align-items:center;gap:14px;margin-bottom:10px;"><div style="font-family:var(--mono);font-size:2rem;font-weight:900;color:var('+col+');">'+heat.toFixed(1)+'%</div><div><div style="font-weight:800;color:var('+col+');">'+verdict+'</div><div style="font-size:0.68rem;color:var(--text-muted);margin-top:2px;">Sumber: '+(lastSrc||'-')+'</div></div></div>';
 for(var r2=0;r2<rows.length;r2++){var rw=rows[r2];h+='<div style="display:flex;justify-content:space-between;font-size:0.74rem;padding:3px 0;border-bottom:1px dashed rgba(255,255,255,.06);"><span>'+rw.t+' <span style="color:var(--text-muted);font-size:0.66rem;">'+rw.lot+' lot - SL asum '+Math.round(rw.sl).toLocaleString('id-ID')+'</span></span><span style="font-family:var(--mono);font-weight:700;">'+rw.riskPct.toFixed(1)+'%</span></div>';}
 if(pairs.length)h+='<div style="font-size:0.72rem;color:var(--yellow);margin-top:8px;">⚠️ Korelasi tinggi: '+pairs.join(', ')+'</div>';
 out.innerHTML=h;
@@ -136,6 +141,61 @@ h+='<button class="btn-mini" onclick="goPortDoc()">Review</button></div>';return
 function mountChips(){var last=lsJSON('ihsg_portdoc_last',null);var html=chipHtml(last);var tabs=['tab-analysis','tab-market'];
 for(var i=0;i<tabs.length;i++){var t=document.getElementById(tabs[i]);if(!t)continue;var old=document.getElementById('portChip_'+i);if(old)old.remove();var div=document.createElement('div');div.id='portChip_'+i;div.innerHTML=html;t.insertBefore(div,t.firstChild);}}
 window.goPortDoc=function(){switchTab('porto');setTimeout(function(){window.runPortDoc();},300);};
+window.runWhatIf=async function(){
+var out=document.getElementById('wiOut');
+var code=window.lastTicker;
+if(!code){out.innerHTML='<div style="color:var(--yellow);">Proses sebuah saham dulu di tab Analisis, lalu simulasi add di sini.</div>';return;}
+var lotIn=document.getElementById('wiLot');
+var lot=parseFloat(lotIn?lotIn.value:0)||0;
+if(lot<=0){out.innerHTML='<div style="color:var(--yellow);">Isi jumlah lot yang ingin ditambah.</div>';return;}
+out.innerHTML='<div class="skel-box" style="height:50px"></div>';
+try{
+var list=buildList(getPorto());
+var codes=[];
+for(var i=0;i<list.length;i++){if(codes.indexOf(list[i].t)<0)codes.push(list[i].t);}
+if(codes.indexOf(code)<0)codes.push(code);
+var settled=await Promise.allSettled(codes.map(function(c){return SW.candle(c,'1y');}));
+var info={};
+settled.forEach(function(res,i){
+if(res.status!=='fulfilled')return;
+var A=SW.arrays(res.value);var n=A.c.length;if(n<30)return;
+var atr=SW.atr(A.h,A.l,A.c,14)[n-1]||A.c[n-1]*0.03;
+var price=(typeof cachePrice==='function'&&cachePrice(codes[i]))||A.c[n-1];
+info[codes[i]]={atr:atr,price:price};
+});
+if(!info[code]){out.innerHTML='<div style="color:var(--red);">Data saham '+code+' tidak tersedia.</div>';return;}
+var baseValue=0,baseCost=0,baseHeatRp=0,existValue=0;
+for(var j=0;j<list.length;j++){
+var p=list[j];var inf=info[p.t];if(!inf)continue;
+var val=p.lot*100*inf.price;var cost=p.lot*100*p.avg;
+baseValue+=val;baseCost+=cost;
+var sl=p.avg-2*inf.atr;if(sl<0)sl=0;
+var risk=p.lot*100*Math.max(0,p.avg-sl);var cap=p.lot*100*p.avg*0.5;if(risk>cap)risk=cap;
+baseHeatRp+=risk;
+if(p.t===code)existValue+=val;
+}
+var addValue=lot*100*info[code].price;
+var addRisk=lot*100*2*info[code].atr;var addCap=lot*100*info[code].price*0.5;if(addRisk>addCap)addRisk=addCap;
+var newCost=baseCost+addValue;
+var newValue=baseValue+addValue;
+var oldHeat=baseCost>0?baseHeatRp/baseCost*100:0;
+var newHeat=newCost>0?(baseHeatRp+addRisk)/newCost*100:0;
+var oldWeight=baseValue>0?existValue/baseValue*100:0;
+var newWeight=newValue>0?(existValue+addValue)/newValue*100:0;
+var ij=await fetchChart('^JKSE','1y');var reg=regimeIHSG(SW.arrays(ij.chart.result[0]));
+var verdict,vcol;
+if(newHeat>6){verdict='🔴 JANGAN ADD - heat jadi '+newHeat.toFixed(1)+'% (>6%). Trim dulu posisi lain.';vcol='red';}
+else if(newWeight>40){verdict='🟠 ADD membuat '+code+' overweight '+newWeight.toFixed(0)+'% (>40%). Pertimbangkan lot lebih kecil.';vcol='yellow';}
+else if(reg==='BEARISH'){verdict='🟠 ADD saat regime BEARISH - risiko pasar tinggi; tunda atau ukuran minimal.';vcol='yellow';}
+else{verdict='🟢 ADD aman dalam batas risiko (heat '+newHeat.toFixed(1)+'%, berat '+newWeight.toFixed(0)+'%). Eksekusi sesuai rencana.';vcol='green';}
+var h='<div style="padding:8px 10px;border:1px solid var(--card-border);border-radius:12px;background:var(--card-bg);">';
+h+='<div style="font-weight:800;color:#fff;margin-bottom:4px;">🧮 What-if ADD: '+code+' +'+lot+' lot @ '+Math.round(info[code].price).toLocaleString('id-ID')+'</div>';
+h+='<div style="color:var(--text-muted);">Heat: '+oldHeat.toFixed(1)+'% → <strong>'+newHeat.toFixed(1)+'%</strong> • Berat '+code+': '+oldWeight.toFixed(0)+'% → <strong>'+newWeight.toFixed(0)+'%</strong></div>';
+h+='<div style="font-weight:800;color:var('+vcol+');margin-top:4px;">'+verdict+'</div>';
+h+='</div>';
+out.innerHTML=h;
+}catch(e){out.innerHTML='<div style="color:var(--red);">Simulasi gagal: '+esc(e.message)+'</div>';}
+};
 window.runPortDoc=async function(){
 var out=document.getElementById('pdOut');
 var porto=getPorto();
@@ -145,7 +205,7 @@ var btn=document.getElementById('pdBtn');if(btn){btn.disabled=true;btn.innerText
 try{
 var ij=await fetchChart('^JKSE','1y');var IA=SW.arrays(ij.chart.result[0]);var reg=regimeIHSG(IA);
 var iRets=rets60(IA.c);
-var list=[];for(var i0=0;i0<porto.length;i0++){var e0=porto[i0];var c0=cleanCode(codeOf(e0));var l0=lotOf(e0);var a0=avgOf(e0);if(c0&&l0>0&&a0>0)list.push({t:c0,lot:l0,avg:a0});}
+var list=buildList(porto);
 var totalValue=0,totalCost=0;var rows=[];
 var settled=await Promise.allSettled(list.map(function(p){return SW.candle(p.t,'1y');}));
 var wks=await Promise.allSettled(list.map(function(p){return fetchChart(p.t+'.JK','1y','1wk').then(function(j){return j.chart.result[0];}).catch(function(){return null;});}));
@@ -217,7 +277,8 @@ var share=excess*(rp.riskPct/heat);
 var lots=Math.ceil(share/riskPerLot);
 if(lots<1)lots=1;
 if(lots>rp.lot)lots=rp.lot;
-recipe.push({code:rp.code,from:rp.lot,to:rp.lot-lots,sell:lots,newHeat:0});
+var urgent=(rp.T.trend==='TURUN'||rp.distSL<2);
+recipe.push({code:rp.code,from:rp.lot,to:rp.lot-lots,sell:lots,newHeat:0,when:urgent?'OPEN berikutnya (jangan tunggu)':'tunggu bounce ke resist',level:urgent?null:Math.round(rp.T.res||0)});
 excess-=lots*riskPerLot;
 }
 var newHeat=heat;
@@ -234,11 +295,11 @@ L.push('REGIME PASAR (IHSG): '+reg);
 L.push('PORTOFOLIO: nilai '+Math.round(totalValue).toLocaleString('id-ID')+', P&L '+(pnlTotal>=0?'+':'')+pnlTotal.toFixed(1)+'%, heat '+heat.toFixed(1)+'%, terberat '+maxCode+' '+maxW.toFixed(0)+'%'+(pairs.length?', korelasi tinggi: '+pairs.join(', '):'')+'.');
 L.push('STRESS TEST (beta per posisi): IHSG -5% → port '+(stress[0]>=0?'+':'')+stress[0].toFixed(1)+'% | IHSG 0% → 0% | IHSG +5% → '+(stress[2]>=0?'+':'')+stress[2].toFixed(1)+'%.');
 if(recipe.length){
-var rl2='RESEP OTOMATIS (validasi/adjust): ';
-for(var rJ=0;rJ<recipe.length;rJ++)rl2+=recipe[rJ].code+' jual '+recipe[rJ].sell+' lot (sisa '+recipe[rJ].to+') → heat '+recipe[rJ].newHeat.toFixed(1)+'%; ';
+var rl2='RESEP BERJADWAL (validasi/adjust): ';
+for(var rJ=0;rJ<recipe.length;rJ++)rl2+=recipe[rJ].code+' jual '+recipe[rJ].sell+' lot (sisa '+recipe[rJ].to+') saat '+recipe[rJ].when+(recipe[rJ].level?' Rp '+recipe[rJ].level.toLocaleString('id-ID'):'')+' → heat '+recipe[rJ].newHeat.toFixed(1)+'%; ';
 L.push(rl2);
 }else{
-L.push('RESEP OTOMATIS: tidak perlu trim (heat masih <=6%).');
+L.push('RESEP: tidak perlu trim (heat <=6%).');
 }
 for(var pI=0;pI<rows.length;pI++){
 var rw=rows[pI];var T=rw.T;var F=rw.F;
@@ -247,7 +308,7 @@ L.push('TEKNIKAL: tren '+T.trend+' (MA20 '+(T.m20?Math.round(T.m20):'-')+', MA50
 L.push('FUNDAMENTAL: '+(F?('PER '+f2(F.pe)+', PBV '+f2(F.pb)+', growth pendapatan '+pc(F.revG)+', margin '+pc(F.margin)+', ROE '+pc(F.roe)+', D/E '+f2(F.de)+(F.target?', target analis '+Math.round(F.target)+' (upside '+(((F.target-rw.price)/rw.price)*100).toFixed(1)+'%)':'')+(F.rec?', rekomendasi '+F.rec:'')):'tidak tersedia'));
 L.push('POSISI: jarak ke SL asumsi '+rw.distSL.toFixed(1)+'%'+(rw.distSL<2?' [DEKAT SL]':'')+(rw.weight>40?' [OVERWEIGHT]':''));
 }
-var prompt='Anda manajer risiko KRITIS untuk portofolio saham Indonesia. Data:'+NL+L.join(NL)+NL+NL+'ATURAN: nilai VALIDITAS TESIS tiap posisi (teknikal+fundamental), bukan sekadar P&L/heat. Jangan anchor harga beli. Validasi atau koreksi RESEP OTOMATIS di atas (boleh beda bila tesis posisi masih kuat). Untuk tiap posisi tulis 3 baris:'+NL+'TESIS: (1 kalimat + angka kunci)'+NL+'FALSIFIKASI: (level harga spesifik pembatal tesis)'+NL+'VERDICT: KODE = HOLD/ADD/TRIM/EXIT (keyakinan x/5) + aksi konkret'+NL+'Lalu PORTOFOLIO: 2-3 keputusan (konsentrasi, korelasi, stress test, regime). Maks 260 kata, Indonesia.';
+var prompt='Anda manajer risiko KRITIS untuk portofolio saham Indonesia. Data:'+NL+L.join(NL)+NL+NL+'ATURAN: nilai VALIDITAS TESIS tiap posisi (teknikal+fundamental), bukan sekadar P&L/heat. Jangan anchor harga beli. Validasi atau koreksi RESEP BERJADWAL di atas (boleh beda bila tesis posisi masih kuat). Untuk tiap posisi tulis 3 baris:'+NL+'TESIS: (1 kalimat + angka kunci)'+NL+'FALSIFIKASI: (level harga spesifik pembatal tesis)'+NL+'VERDICT: KODE = HOLD/ADD/TRIM/EXIT (keyakinan x/5) + aksi konkret'+NL+'Lalu PORTOFOLIO: 2-3 keputusan (konsentrasi, korelasi, stress test, regime). Maks 260 kata, Indonesia.';
 var narrative='';
 try{narrative=await window.callLLM(prompt);}catch(e){narrative='(AI gagal: '+e.message+') Data mentah:'+NL+L.join(NL);}
 var h='<div class="metric-grid" style="margin-bottom:8px;">';
@@ -255,10 +316,10 @@ h+='<div class="metric-box"><div class="metric-label">Nilai Pasar</div><div clas
 h+='<div class="metric-box"><div class="metric-label">P&L Total</div><div class="metric-value '+(pnlTotal>=0?'green':'red')+'">'+(pnlTotal>=0?'+':'')+pnlTotal.toFixed(1)+'%</div></div>';
 h+='<div class="metric-box"><div class="metric-label">Heat</div><div class="metric-value '+(heat<3?'green':heat<=6?'yellow':'red')+'">'+heat.toFixed(1)+'%</div></div>';
 h+='<div class="metric-box"><div class="metric-label">Terberat</div><div class="metric-value '+(maxW>40?'red':'green')+'">'+maxCode+' '+maxW.toFixed(0)+'%</div></div></div>';
-h+='<div style="font-size:0.72rem;padding:6px 8px;border:1px solid var(--card-border);border-radius:10px;background:var(--card-bg);margin-bottom:8px;color:var(--text-muted);">️ Stress test: IHSG -5% → <strong class="'+(stress[0]<-4?'red':'yellow')+'">'+(stress[0]>=0?'+':'')+stress[0].toFixed(1)+'%</strong> | IHSG +5% → <strong class="green">+'+stress[2].toFixed(1)+'%</strong> (berbasis beta tiap posisi)</div>';
+h+='<div style="font-size:0.72rem;padding:6px 8px;border:1px solid var(--card-border);border-radius:10px;background:var(--card-bg);margin-bottom:8px;color:var(--text-muted);">🌪️ Stress test: IHSG -5% → <strong class="'+(stress[0]<-4?'red':'yellow')+'">'+(stress[0]>=0?'+':'')+stress[0].toFixed(1)+'%</strong> | IHSG +5% → <strong class="green">+'+stress[2].toFixed(1)+'%</strong> (berbasis beta tiap posisi)</div>';
 if(recipe.length){
-var rh='🧾 <strong>Resep lot:</strong> ';
-for(var rK=0;rK<recipe.length;rK++)rh+=recipe[rK].code+' '+recipe[rK].from+'→'+recipe[rK].to+' lot (jual '+recipe[rK].sell+') ';
+var rh='🧾 <strong>Resep berjadwal:</strong> ';
+for(var rK=0;rK<recipe.length;rK++)rh+=recipe[rK].code+' '+recipe[rK].from+'→'+recipe[rK].to+' lot (jual '+recipe[rK].sell+') saat '+recipe[rK].when+(recipe[rK].level?' Rp '+recipe[rK].level.toLocaleString('id-ID'):'')+' ';
 rh+='→ heat jadi '+recipe[recipe.length-1].newHeat.toFixed(1)+'%.';
 h+='<div style="font-size:0.74rem;padding:8px 10px;border:1px solid rgba(34,197,94,.35);border-radius:10px;background:rgba(34,197,94,.08);margin-bottom:8px;color:var(--green);">'+rh+'</div>';
 }
@@ -278,4 +339,4 @@ finally{if(btn){btn.disabled=false;btn.innerText='🩺 Minta Review AI';}}
 };
 setTimeout(mountChips,1200);
 })();
-/* END portdoc v5 */
+/* END portdoc v6 */
