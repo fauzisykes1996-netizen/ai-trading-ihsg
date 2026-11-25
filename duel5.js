@@ -1,11 +1,11 @@
-/* duel5.js v7 - Duel 5 Mesin: voting + meter berbobot rekam jejak + ringkasan anti-gantung */
+/* duel5.js v9 - Duel 5 Mesin: slot progresif + timeout + voting berbobot + RONDE 2 debat silang */
 (function(){
 if(!window.P)return;
 var NL=String.fromCharCode(10);
 var anchor=null;
 var qb=document.getElementById('qbBtn');
 if(qb)anchor=qb.closest('.card');
-P.card('tab-analysis','<div class="card-title"><span>⚔️ Duel 5 Mesin</span><span class="agent-pill tech">Dewan Berbobot</span></div><button class="btn-copy" style="margin-top:0;" id="d5Btn" onclick="runDuel5()">⚔️ Jalankan Duel 5 Mesin</button><div id="d5Note" style="font-size:0.7rem;color:var(--text-muted);margin-top:8px;">Voting BUY/WAIT/SELL dicatat; setelah 20 hari dicocokkan dengan hasil nyata. Mesin akurat bersuara lebih berat.</div><div id="d5Out" class="hidden" style="margin-top:10px;"></div>',anchor);
+P.card('tab-analysis','<div class="card-title"><span>⚔️ Duel 5 Mesin</span><span class="agent-pill tech">Dewan Berbobot</span></div><button class="btn-copy" style="margin-top:0;" id="d5Btn" onclick="runDuel5()">⚔️ Jalankan Duel 5 Mesin</button><div id="d5Note" style="font-size:0.7rem;color:var(--text-muted);margin-top:8px;">Ronde 1 independen; Ronde 2 (opsional) membuat mesin saling melihat vonis lalu merevisi. Meter pakai vonis terbaru.</div><div id="d5Out" class="hidden" style="margin-top:10px;"></div>',anchor);
 function g(id){var e=document.getElementById(id);return e?e.innerText:'-';}
 function clip(t,n){var s=String(t||'').split(NL).join(' ');if(s.length>n)s=s.slice(0,n)+'...';return s;}
 function cardText(kw){var ts=document.querySelectorAll('.card-title');for(var i=0;i<ts.length;i++){var tt=ts[i].innerText||'';if(tt.toUpperCase().indexOf(kw)>=0){var c=ts[i].closest('.card');if(c)return c.innerText;}}return '';}
@@ -82,9 +82,6 @@ if(prov==='core'){if(model==='gemini')return await geminiCall(prompt);return awa
 if(window.FF)return await window.FF.callPrompt(prompt,id);
 throw new Error('Free Fleet tidak tersedia');
 }
-async function callRetry(id,prompt){
-try{return await callEngine(id,prompt);}catch(e){return await callEngine(id,prompt);}
-}
 function withTimeout(p,ms){
 return new Promise(function(resolve,reject){
 var to=setTimeout(function(){reject(new Error('timeout '+Math.round(ms/1000)+' detik'));},ms);
@@ -141,7 +138,7 @@ if(s.pct>=60)return 1.5;
 if(s.pct<40)return 0.5;
 return 1;
 }
-function block(label,txt,ok,vote,hr){
+function blockHtml(label,txt,ok,vote,hr){
 var col='red';
 if(ok)col='green';
 var badge='';
@@ -169,7 +166,7 @@ else cQ++;
 }
 var parsed=votes.length-cQ;
 if(parsed===0){
-return '<div style="font-size:0.76rem;padding:8px 10px;border:1px solid var(--card-border);border-radius:12px;background:var(--card-bg);margin-bottom:4px;color:var(--yellow);">🗳️ Meter: tidak ada mesin mengikuti format voting - baca narasi manual.</div>';
+return '<div style="font-size:0.76rem;padding:8px 10px;border:1px solid var(--card-border);border-radius:12px;background:var(--card-bg);margin-bottom:4px;color:var(--yellow);">🗳️ Meter: belum ada suara sah - tunggu mesin menjawab.</div>';
 }
 var max=wB;var lab='BUY';
 if(wW>max){max=wW;lab='WAIT';}
@@ -181,9 +178,9 @@ else if(lab==='WAIT'){lamp='🟡';col='yellow';advice='mayoritas tunggu - simpan
 else if(agree>=0.8){lamp='🟢';col='green';advice='konsensus kuat BUY - ukuran posisi normal sesuai rencana.';}
 else if(agree>=0.6){lamp='🟡';col='yellow';advice='BUY tapi suara terbelah - setengah ukuran posisi.';}
 else{lamp='🟡';col='yellow';advice='suara sangat terbelah - zona abu-abu, lewat atau ukuran minimal.';}
-var h='<div style="font-size:0.78rem;padding:8px 10px;border:1px solid var(--card-border);border-radius:12px;background:var(--card-bg);margin-bottom:4px;">';
+var h='<div id="d5Meter" style="font-size:0.78rem;padding:8px 10px;border:1px solid var(--card-border);border-radius:12px;background:var(--card-bg);margin-bottom:4px;">';
 h+='🗳️ <strong>Konsensus berbobot:</strong> '+cB+' BUY / '+cW+' WAIT / '+cS+' SELL (kecocokan '+(agree*100).toFixed(0)+'% dari '+parsed+' suara sah) → '+lamp+' '+advice;
-if(cQ>0)h+=' • '+cQ+' mesin tidak ikut format (dikecualikan)';
+if(cQ>0)h+=' • '+cQ+' mesin belum ikut format';
 if(parsed<2)h+=' • ⚠️ suara sah <2 - baca narasi manual juga';
 var rec=[];
 if(stats){
@@ -204,52 +201,149 @@ var btn=document.getElementById('d5Btn');
 btn.disabled=true;btn.innerText='Duel berjalan...';
 var out=document.getElementById('d5Out');
 out.classList.remove('hidden');
-out.innerHTML='<div class="skel-box" style="height:80px"></div>';
+var code=window.lastTicker;
 var list=engines();
 var prompt=buildPrompt();
-var code=window.lastTicker;
-var jobs=list.map(function(en){return callRetry(en.id,prompt).then(function(t){return {en:en,txt:t};});});
-var res=await Promise.allSettled(jobs);
-var ok=[];var votes=[];var h='';
-for(var i=0;i<res.length;i++){
-if(res[i].status==='fulfilled'){
-var item=res[i].value;
-var vt=parseVote(item.txt);
-ok.push(item);
-votes.push({v:vt.v,id:list[i].id});
+var slots=[];
+out.innerHTML='';
+for(var i=0;i<list.length;i++){
+var div=document.createElement('div');
+div.id='d5slot'+i;
+div.innerHTML='<div class="report-card" style="margin-top:8px;opacity:.6;"><div style="font-size:0.72rem;font-weight:800;color:var(--text-muted);">'+esc(list[i].label)+' <span style="font-weight:400;">menjawab...</span></div></div>';
+out.appendChild(div);
+slots.push(div);
+}
+var headDiv=document.createElement('div');
+headDiv.id='d5Head';
+out.insertBefore(headDiv,out.firstChild);
+var log=await resolveLog();
+var stats=engineStats(log);
+window.__d5Stats=stats;
+window.__d5R1=[];
+var votes=[];
+var okCount=0;
+var pending=list.length;
+function refreshHead(){
+var extra='';
+if(pending===0)extra='<button class="btn-copy" style="margin-top:6px;" id="d5R2" onclick="runRound2()">🔁 Ronde 2: Debat Silang</button>';
+headDiv.innerHTML=meter(votes,stats)+'<div style="font-size:0.72rem;color:var(--text-muted);margin-bottom:4px;">'+okCount+'/'+list.length+' mesin menjawab'+(pending>0?' ('+pending+' masih berjalan...)':'')+'.</div>'+(okCount>=2?'<button class="btn-copy" style="margin-top:6px;" id="d5SumBtn" onclick="summarizeDuel()">🧠 Ringkas Konsensus</button>':'')+extra;
+}
+refreshHead();
+function settleOne(idx,result){
+pending--;
+var slot=slots[idx];
+if(result.status==='fulfilled'){
+var vt=parseVote(result.value);
+votes.push({v:vt.v,id:list[idx].id});
+okCount++;
+window.__d5R1.push({id:list[idx].id,label:list[idx].label,txt:result.value,vt:vt});
+slot.innerHTML=blockHtml(list[idx].label,result.value,true,vt,stats[list[idx].id]);
 if(vt.v!=='?'&&window.lastPrice){
 var log0=lsJSON('ihsg_duel_log',[]);
-log0.push({t:Date.now(),c:code,eng:list[i].id,label:list[i].label,v:vt.v,px:window.lastPrice,o:null});
+log0.push({t:Date.now(),c:code,eng:list[idx].id,label:list[idx].label,v:vt.v,px:window.lastPrice,o:null});
 if(log0.length>400)log0=log0.slice(log0.length-400);
 saveLS('ihsg_duel_log',log0);
 }
-h+=block(list[i].label,item.txt,true,vt,null);
 }else{
-h+=block(list[i].label,'Tidak merespon: '+res[i].reason.message,false,null);
+slot.innerHTML=blockHtml(list[idx].label,'Tidak merespon: '+result.reason.message,false,null);
 }
-}
-var log=await resolveLog();
-var stats=engineStats(log);
-h='';
-for(var i2=0;i2<res.length;i2++){
-if(res[i2].status==='fulfilled'){
-var vt2=parseVote(res[i2].value.txt);
-h+=block(list[i2].label,res[i2].value.txt,true,vt2,stats[list[i2].id]);
-}else{
-h+=block(list[i2].label,'Tidak merespon: '+res[i2].reason.message,false,null);
-}
-}
-var head=meter(votes,stats);
-head+='<div style="font-size:0.72rem;color:var(--text-muted);margin-bottom:4px;">'+ok.length+'/5 mesin menjawab (voting berbobot rekam jejak).</div>';
-h=head+h;
-if(ok.length>=2)h+='<button class="btn-copy" style="margin-top:8px;" id="d5SumBtn" onclick="summarizeDuel()">🧠 Ringkas Konsensus</button>';
-out.innerHTML=h;
-window.__d5ok=ok;
+refreshHead();
+if(pending===0){
 btn.disabled=false;btn.innerText='⚔️ Jalankan Duel 5 Mesin';
+}
+}
+for(var j=0;j<list.length;j++){
+(function(idx){
+withTimeout(callEngine(list[idx].id,prompt),35000).then(function(txt){
+settleOne(idx,{status:'fulfilled',value:txt});
+}).catch(function(e){
+settleOne(idx,{status:'rejected',reason:e});
+});
+})(j);
+}
+setTimeout(function(){
+if(btn.disabled){btn.disabled=false;btn.innerText='⚔️ Jalankan Duel 5 Mesin';}
+},37000);
+};
+window.runRound2=async function(){
+var r1=window.__d5R1||[];
+if(r1.length<2){toast('Butuh minimal 2 jawaban ronde 1 untuk debat silang.');return;}
+var btn=document.getElementById('d5R2');
+if(btn&&btn.disabled)return;
+if(btn){btn.disabled=true;btn.innerText='🔁 Ronde 2 berjalan...';}
+var stats=window.__d5Stats||{};
+var out=document.getElementById('d5Out');
+var old=document.getElementById('d5r2');
+if(old)old.remove();
+var cont=document.createElement('div');
+cont.id='d5r2';
+out.appendChild(cont);
+var t2=document.createElement('div');
+t2.innerHTML='<div style="font-size:0.76rem;font-weight:800;color:#fff;margin-top:12px;">🔁 Ronde 2 - Debat Silang (mesin saling melihat vonis)</div>';
+cont.appendChild(t2);
+var slots=[];
+for(var i=0;i<r1.length;i++){
+var d=document.createElement('div');
+d.id='d5r2s'+i;
+d.innerHTML='<div class="report-card" style="margin-top:8px;opacity:.6;"><div style="font-size:0.72rem;font-weight:800;color:var(--text-muted);">'+esc(r1[i].label)+' <span style="font-weight:400;">menimbang argumen lain...</span></div></div>';
+cont.appendChild(d);
+slots.push(d);
+}
+var revised={};
+var pending=r1.length;
+function refresh(){
+var votes=[];
+for(var i=0;i<r1.length;i++){
+var v=revised[r1[i].id]?revised[r1[i].id]:r1[i].vt.v;
+votes.push({v:v,id:r1[i].id});
+}
+var head=document.getElementById('d5Head');
+if(head){
+head.innerHTML=meter(votes,stats)+'<div style="font-size:0.72rem;color:var(--text-muted);margin-bottom:4px;">Meter memakai vonis terbaru (ronde 2 bila ada).</div><button class="btn-copy" style="margin-top:6px;" id="d5SumBtn" onclick="summarizeDuel()">🧠 Ringkas Konsensus</button><button class="btn-copy" style="margin-top:6px;" id="d5R2" onclick="runRound2()"'+(pending>0?' disabled':'')+'>🔁 Ronde 2: Debat Silang</button>';
+}
+if(pending===0&&btn){btn.disabled=false;btn.innerText='🔁 Ronde 2: Debat Silang';}
+}
+refresh();
+function settle(idx,ok,txt,err){
+pending--;
+if(ok){
+var clean=String(txt).split('VONIS REVISI:').join('VONIS:');
+var vt=parseVote(clean);
+revised[r1[idx].id]=vt.v;
+slots[idx].innerHTML=blockHtml(r1[idx].label+' (revisi)',txt,true,vt,stats[r1[idx].id]);
+}else{
+revised[r1[idx].id]=r1[idx].vt.v;
+slots[idx].innerHTML=blockHtml(r1[idx].label,'Tidak merespon: '+err.message+' - vonis ronde 1 dipertahankan.',false,null);
+}
+refresh();
+}
+for(var j=0;j<r1.length;j++){
+(function(idx){
+var others='';
+for(var k=0;k<r1.length;k++){
+if(k===idx)continue;
+others+='['+r1[k].label+'] VONIS '+r1[k].vt.v+' keyakinan '+r1[k].vt.conf+'/5: '+clip(r1[k].txt,180)+NL;
+}
+var p='Anda sebelumnya memberi VONIS '+r1[idx].vt.v+' untuk saham ini. Berikut vonis & argumen analis lain:'+NL+others+NL+'Tugas: pertimbangkan argumen mereka secara kritis, lalu revisi atau pertahankan vonis Anda. Jawab tepat 3 baris:'+NL+'VONIS REVISI: BUY atau WAIT atau SELL'+NL+'KEYAKINAN: n/5'+NL+'ALASAN: 1 kalimat (setuju/beda dengan siapa & mengapa)';
+withTimeout(callEngine(r1[idx].id,p),35000).then(function(txt){
+settle(idx,true,txt,null);
+}).catch(function(e){
+settle(idx,false,null,e);
+});
+})(j);
+}
 };
 window.summarizeDuel=async function(){
-var ok=window.__d5ok||[];
-if(ok.length<2)return;
+var ok=[];
+var slots=document.querySelectorAll('[id^="d5slot"]');
+for(var i=0;i<slots.length;i++){
+var txtEl=slots[i].querySelector('div:last-child');
+var labelEl=slots[i].querySelector('div:first-child');
+if(txtEl&&labelEl&&labelEl.innerText.indexOf('Tidak merespon')<0&&labelEl.innerText.indexOf('menjawab')<0){
+ok.push({en:{label:labelEl.innerText.split(' [')[0]},txt:txtEl.innerText});
+}
+}
+if(ok.length<2){toast('Butuh minimal 2 jawaban untuk diringkas.');return;}
 var btn=document.getElementById('d5SumBtn');
 if(btn&&btn.disabled)return;
 if(btn){btn.disabled=true;btn.innerText='🧠 Merangkum...';}
@@ -262,22 +356,26 @@ d.innerHTML='<div style="font-size:0.72rem;font-weight:800;color:var(--accent);m
 out.appendChild(d);
 var box=document.getElementById('d5sumTxt');
 var body='Opini analis AI:'+NL;
-for(var i=0;i<ok.length;i++)body+='['+ok[i].en.label+'] '+ok[i].txt+NL;
+for(var k=0;k<ok.length;k++)body+='['+ok[k].en.label+'] '+ok[k].txt+NL;
 body+=NL+'Ringkas: titik SETUJU, titik SELISIH, rekomendasi final 1 kalimat. Maks 80 kata.';
 var done=false;
-var maxTry=ok.length<3?ok.length:3;
-for(var k=0;k<maxTry;k++){
+var engList=engines();
+var order=[];
+for(var m=0;m<ok.length&&order.length<3;m++){
+for(var n=0;n<engList.length;n++){if(engList[n].label===ok[m].en.label.split(' [')[0]&&order.indexOf(engList[n].id)<0){order.push(engList[n].id);break;}}
+}
+for(var p=0;p<order.length;p++){
 if(done)break;
 try{
-var t=await withTimeout(callEngine(ok[k].en.id,body),45000);
+var t=await withTimeout(callEngine(order[p],body),40000);
 box.innerHTML=esc(t);
 done=true;
 }catch(e){
-box.innerHTML='Mesin '+ok[k].en.label+' gagal ('+esc(e.message)+') - mencoba mesin berikutnya...';
+box.innerHTML='Mesin '+order[p]+' gagal ('+esc(e.message)+') - mencoba berikutnya...';
 }
 }
-if(!done)box.innerHTML='⚠️ Semua mesin gagal merangkum (timeout/kuota). Narasi lengkap tetap ada di atas - atau klik Ringkas sekali lagi nanti.';
+if(!done)box.innerHTML='⚠️ Semua mesin gagal merangkum. Narasi lengkap tetap ada di atas.';
 if(btn){btn.disabled=false;btn.innerText='🧠 Ringkas Konsensus';}
 };
 })();
-/* END duel5 v7 */
+/* END duel5 v9 */
