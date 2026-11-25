@@ -1,4 +1,4 @@
-/* toppicks.js v4 - Top Picks: universe otomatis IHSG/US + track record + bintang massal */
+/* toppicks.js v5 - Top Picks: universe 2 pasar + filter likuiditas + diversifikasi korelasi + track record + bintang */
 (function(){
 if(!window.P||!window.SW)return;
 var SW=window.SW;
@@ -8,11 +8,14 @@ if(window.MKT&&window.MKT.mode&&window.MKT.mode()==='US'&&window.MKT.US_UNIV)ret
 return ID_UNIV.slice();
 }
 function mkey(){return window.MKT&&window.MKT.mode?window.MKT.mode():'ID';}
+function minTurnover(){return mkey()==='US'?2e7:5e9;}
+function rets60(c){var r=[];var s=Math.max(1,c.length-60);for(var i=s;i<c.length;i++){if(c[i-1])r.push((c[i]-c[i-1])/c[i-1]);}return r;}
+function corr(a,b){var n=Math.min(a.length,b.length);if(n<10)return 0;var ma=0,mb=0;for(var i=0;i<n;i++){ma+=a[i];mb+=b[i];}ma/=n;mb/=n;var num=0,da=0,db=0;for(var j=0;j<n;j++){var x=a[j]-ma,y=b[j]-mb;num+=x*y;da+=x*x;db+=y*y;}if(da===0||db===0)return 0;return num/Math.sqrt(da*db);}
 var anchor=document.getElementById('slOut')?document.getElementById('slOut').closest('.card'):(document.getElementById('scrBtn')?document.getElementById('scrBtn').closest('.card'):null);
 P.card('tab-market',
-'<div class="card-title"><span>🏆 Top Picks 1 Bulan</span><span class="agent-pill master">Auto-Scan 2 Pasar</span></div>'+
+'<div class="card-title"><span>🏆 Top Picks 1 Bulan</span><span class="agent-pill master">Likuid & Tersebar</span></div>'+
 '<button class="btn-copy" style="margin-top:0;" id="tpBtn" onclick="runTopPicks()">🏆 Scan Top Picks Sekarang</button>'+
-'<div id="tpNote" style="font-size:0.7rem;color:var(--text-muted);margin-top:8px;">Universe mengikuti saklar 🇮🇩/🇺🇸 di baris mesin. Pick tersimpan dan dinilai otomatis setelah 20 hari.</div>'+
+'<div id="tpNote" style="font-size:0.7rem;color:var(--text-muted);margin-top:8px;">Universe mengikuti saklar 🇮🇩/🇸. Filter likuiditas + diversifikasi korelasi <0.8 supaya pick tersebar & bisa dimasuki modal.</div>'+
 '<div id="tpOut" class="hidden" style="margin-top:10px;"></div>',anchor);
 function regimeOfBench(IA){
 var n=IA.c.length;
@@ -48,6 +51,7 @@ var avg60=0;for(var b=vol.length-60;b<vol.length;b++)avg60+=vol[b];avg60/=60;
 ratio=avg60>0?avg20/avg60:0;
 if(ratio>=1.3)volPts=15;else if(ratio>=1.1)volPts=10;else if(ratio>=0.9)volPts=5;
 }
+var turnover=avg20*price;
 var volLast=vol.length?vol[vol.length-1]:0;
 var chg=(A.c[n-1]-A.c[n-2])/A.c[n-2]*100;
 var tape=0;
@@ -59,7 +63,7 @@ var verdict,col;
 if(score>=75){verdict='LAYAK';col='green';}
 else if(score>=60){verdict='HATI-HATI';col='yellow';}
 else{verdict='LEWATI';col='red';}
-return{score:score,verdict:verdict,col:col,ret60:ret60,rel:rel,ratio:ratio,px:price};
+return{score:score,verdict:verdict,col:col,ret60:ret60,rel:rel,ratio:ratio,px:price,to:turnover,rets:rets60(A.c)};
 }
 async function resolveHist(){
 var hist=lsJSON('toppicks_hist',[]);
@@ -132,27 +136,35 @@ var hist=await resolveHist();
 var tr=trackLine(hist);
 var ck='toppicks_cache_'+mkey();
 var cache=lsJSON(ck,null);
-if(cache&&cache.t&&Date.now()-cache.t<600000){render(cache.rows,tr);note('Cache '+new Date(cache.t).toLocaleTimeString('id-ID')+' (10 menit) - pasar '+mkey()+'.');return;}
+if(cache&&cache.t&&Date.now()-cache.t<600000){render(cache.rows,tr);note('Cache '+new Date(cache.t).toLocaleTimeString('id-ID')+' - pasar '+mkey()+'.');return;}
 var ij=await fetchChart('^JKSE','1y');
 var IA=SW.arrays(ij.chart.result[0]);
 var benchRet60=(IA.c[IA.c.length-1]/IA.c[IA.c.length-61]-1)*100;
 var regPts=regimeOfBench(IA);
 var settled=await Promise.allSettled(UNIV.map(function(c){return SW.candle(c,'1y');}));
-var rows=[];
+var cand=[];
+var mt=minTurnover();
 settled.forEach(function(res,i){
 if(res.status!=='fulfilled')return;
 var sc=scoreStock(UNIV[i],res.value,benchRet60,regPts);
-if(sc&&sc.score>=60)rows.push({code:UNIV[i],score:sc.score,verdict:sc.verdict,col:sc.col,ret60:sc.ret60,rel:sc.rel,ratio:sc.ratio,px:sc.px});
+if(sc&&sc.score>=60&&sc.to>=mt)cand.push({code:UNIV[i],score:sc.score,verdict:sc.verdict,col:sc.col,ret60:sc.ret60,rel:sc.rel,ratio:sc.ratio,px:sc.px,to:sc.to,rets:sc.rets});
 });
-rows.sort(function(a,b){return b.score-a.score;});
-rows=rows.slice(0,15);
+cand.sort(function(a,b){return b.score-a.score;});
+var rows=[];
+for(var c=0;c<cand.length&&rows.length<15;c++){
+var ok=true;
+for(var s=0;s<rows.length;s++){
+if(corr(cand[c].rets,rows[s].rets)>0.8){ok=false;break;}
+}
+if(ok)rows.push(cand[c]);
+}
 saveLS(ck,{t:Date.now(),rows:rows});
 var hist2=lsJSON('toppicks_hist',[]);
 hist2.push({t:Date.now(),m:mkey(),picks:rows.map(function(r){return {c:r.code,px:r.px,s:r.score};}),res:null});
 if(hist2.length>40)hist2=hist2.slice(hist2.length-40);
 saveLS('toppicks_hist',hist2);
 render(rows,tr);
-note('Diperbarui '+new Date().toLocaleTimeString('id-ID')+' - pasar '+mkey()+' - benchmark '+(window.MKT?window.MKT.bench():'IHSG')+' '+regPts+'/15 poin. '+rows.length+' lolos >=60.');
+note('Diperbarui '+new Date().toLocaleTimeString('id-ID')+' - pasar '+mkey()+' - likuiditas >= '+(mt/1e9).toFixed(0)+'M - diversifikasi korelasi <0.8 - '+rows.length+' lolos.');
 }catch(e){out.innerHTML='<div style="color:var(--red);">Scan gagal: '+esc(e.message)+'</div>';}
 finally{btn.disabled=false;btn.innerText='🏆 Scan Top Picks Sekarang';}
 };
@@ -162,14 +174,15 @@ var out=document.getElementById('tpOut');window.__tpRows=rows;
 var h='';
 if(tr)h+='<div style="font-size:0.72rem;padding:6px 8px;border:1px solid var(--card-border);border-radius:10px;background:var(--card-bg);margin-bottom:8px;color:var(--text-muted);">'+tr+'</div>';
 if(!rows.length){
-h+='<div style="color:var(--yellow);font-size:0.8rem;">Tidak ada saham dengan skor >=60 saat ini di pasar '+mkey()+'. Disiplin menunggu juga posisi.</div>';
+h+='<div style="color:var(--yellow);font-size:0.8rem;">Tidak ada saham lolos skor >=60 + likuiditas di pasar '+mkey()+'. Disiplin menunggu juga posisi.</div>';
 out.innerHTML=h;return;
 }
 h+='<button class="btn-copy" style="margin-top:0;margin-bottom:8px;" onclick="starPicks()">⭐ Simpan semua skor >=75 ke Watchlist</button>';
 for(var i=0;i<rows.length;i++){
 var r=rows[i];
+var liq=mkey()==='US'?(r.to/1e6).toFixed(0)+'jt$':(r.to/1e9).toFixed(1)+'M';
 h+='<div class="mkt-row" style="cursor:pointer;" onclick="tpPick('+i+')">';
-h+='<span><strong>'+r.code+'</strong> <span style="color:var(--text-muted);font-size:0.68rem;">'+r.verdict+' - 60h '+(r.ret60>=0?'+':'')+r.ret60.toFixed(1)+'% - vol '+r.ratio.toFixed(1)+'x</span></span>';
+h+='<span><strong>'+r.code+'</strong> <span style="color:var(--text-muted);font-size:0.68rem;">'+r.verdict+' - 60h '+(r.ret60>=0?'+':'')+r.ret60.toFixed(1)+'% - liq '+liq+'</span></span>';
 h+='<span style="font-family:var(--mono);font-weight:900;font-size:1.05rem;" class="'+r.col+'">'+r.score+'</span></div>';
 }
 h+='<div class="src-note">Klik baris untuk Proses & konfirmasi lengkap (Forecast, Grader, Bandar, Money Flow).</div>';
@@ -186,4 +199,4 @@ for(var b=0;b<btns.length;b++){if((btns[b].innerText||'').trim()==='Proses'){btn
 },350);
 };
 })();
-/* END toppicks v4 */
+/* END toppicks v5 */
