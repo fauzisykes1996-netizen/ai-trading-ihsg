@@ -1,11 +1,11 @@
-/* agent-grader.js v4 - Setup Grader: skor KUALITAS + skor TIMING terpisah + kalibrasi + aturan */
+/* agent-grader.js v5 - Grader: skor FINAL auto re-read + kunci bias mingguan + timing + kalibrasi + aturan */
 (function(){
 if(!window.P||!window.SW)return;
 var SW=window.SW;
 var anchor=document.getElementById('regimeOut')?document.getElementById('regimeOut').closest('.card'):(document.getElementById('moneyflowOut')?document.getElementById('moneyflowOut').closest('.card'):null);
 P.card('tab-analysis',
 '<div class="card-title"><span>🎯 Setup Grader</span><span class="agent-pill master">Kualitas + Timing</span></div>'+
-'<div id="graderOut" style="font-size:0.8rem;color:var(--text-muted);">Proses saham - skor kualitas setup DAN skor timing entry dipisah, supaya jelas: beli sekarang atau tunggu harga.</div>',
+'<div id="graderOut" style="font-size:0.8rem;color:var(--text-muted);">Proses saham - skor kualitas & timing; otomatis dinilai ulang begitu semua agent siap (badge FINAL).</div>',
 anchor);
 function domText(id){var e=document.getElementById(id);return e?e.innerText.toUpperCase():'';}
 function domReady(id){
@@ -128,6 +128,14 @@ var wC=null;try{var wj=await fetchChart(code+'.JK','1y','1wk');wC=wj.chart.resul
 var mtf=wC?SW.tfScore(candle,wC):null;
 var mp=mtf==null?0:Math.round(mtf*0.15);
 items.push({lab:'Multi-TF (DxW)',pts:mp,max:15,ok:mp>=11,warn:mp>=7&&mp<11,note:mtf==null?'n/a':'skor '+mtf});
+var wDown=false;
+if(wC){
+var wA=SW.arrays(wC);var wn=wA.c.length;
+var wma=SW.sma(wA.c,10);
+var wl=wA.c[wn-1];var wm=wma[wn-1];
+var wsl=(wm!=null&&wma[wn-6]!=null&&wma[wn-6]!==0)?(wm-wma[wn-6])/wma[wn-6]*100:0;
+if(wl<wm||wsl<-0.5)wDown=true;
+}
 var rsi=SW.rsi(A.c,14)[n-1];
 var mo=0;
 if(rsi>=45&&rsi<=65)mo=10;else if(rsi>65&&rsi<=72)mo=6;else if(rsi>=38&&rsi<45)mo=5;else if(rsi>72)mo=2;else mo=3;
@@ -164,9 +172,10 @@ else if(rg.indexOf('BULLISH')>=0){rgp=15;rnote='pasar bullish';}
 else{rgp=5;rnote='n/a';}
 items.push({lab:'Market Regime',pts:rgp,max:15,ok:rgp>=10,warn:rgp>=5&&rgp<10,note:rnote});
 var total=0;for(var x=0;x<items.length;x++)total+=items[x].pts;
+if(wDown)total=Math.min(total,55);
 var timing=computeTiming(A,n);
 logScore(code,total,timing.score);
-return {total:total,items:items,timing:timing};
+return {total:total,items:items,timing:timing,lock:wDown,final:agentsReady()};
 }
 function render(res){
 var box=document.getElementById('graderOut');if(!box)return;
@@ -190,10 +199,12 @@ var verdict=s>=75?'AMBIL - setup berkualitas':s>=60?'BOLEH - disiplin ketat':s>=
 if(down)verdict+=' (kalibrasi: band skor ini historis rugi untuk Anda)';
 var col=s>=75?'green':s>=60?'yellow':s>=45?'yellow':'red';
 if(down&&col==='green')col='yellow';
+var fbadge=res.final?'<span style="color:var(--green);font-weight:800;">🟢 FINAL</span>':'<span style="color:var(--yellow);font-weight:800;">🟠 PROVISIONAL</span>';
 var h='<div style="display:flex;align-items:center;gap:14px;margin-bottom:6px;">';
 h+='<div style="font-family:var(--mono);font-size:2.2rem;font-weight:900;color:var('+col+');">'+s+'</div>';
 h+='<div><div style="font-weight:800;color:var('+col+');font-size:1rem;">KUALITAS: PERINGKAT '+gr+' - '+verdict+'</div>';
-h+='<div style="font-size:0.68rem;color:var(--text-muted);margin-top:2px;">Skor confluence 0-100 dari 7 komponen</div></div></div>';
+h+='<div style="font-size:0.68rem;color:var(--text-muted);margin-top:2px;">'+fbadge+' • skor confluence 0-100 dari 7 komponen</div></div></div>';
+if(res.lock)h+='<div style="font-size:0.74rem;font-weight:800;padding:6px 8px;border:1px solid rgba(239,68,68,.4);border-radius:10px;background:rgba(239,68,68,.08);margin-bottom:8px;color:var(--red);">🔒 KUNCI BIAS MINGGUAN: mingguan turun - skor long dibatasi 55. Jangan melawan timeframe besar.</div>';
 var ts=res.timing.score;
 var tcol=ts>=60?'green':ts>=40?'yellow':'red';
 h+='<div style="display:flex;align-items:center;gap:14px;margin-bottom:8px;">';
@@ -208,7 +219,8 @@ h+='<span>'+tic+' '+tr.lab+' <span style="color:var(--text-muted);font-size:0.64
 h+='<span style="font-family:var(--mono);font-weight:700;">'+tr.pts+'/'+tr.max+'</span></div>';
 }
 var combo='';
-if(s>=70&&ts>=60)combo='🟢 Kualitas + timing sejajar - eksekusi sesuai rencana.';
+if(res.lock)combo='🔒 Mingguan turun - lewat dulu walau timing bagus.';
+else if(s>=70&&ts>=60)combo='🟢 Kualitas + timing sejajar - eksekusi sesuai rencana.';
 else if(s>=70&&ts<60)combo='🟡 Setup bagus tapi harga mahal - tunggu zona Rp '+res.timing.zone+'.';
 else if(s>=60&&ts>=60)combo='🟡 Timing oke, kualitas sedang - ukuran posisi kecil.';
 else combo='🔴 Kualitas atau timing belum lulus - lewat dulu.';
@@ -234,15 +246,34 @@ h+='<div style="display:flex;justify-content:space-between;font-size:0.74rem;pad
 h+='<span>'+ic+' '+it.lab+' <span style="color:var(--text-muted);font-size:0.66rem;">('+it.note+')</span></span>';
 h+='<span style="font-family:var(--mono);font-weight:700;">'+it.pts+'/'+it.max+'</span></div>';
 }
-h+='<div style="font-size:0.66rem;color:#64748b;margin-top:8px;">Kualitas = apakah setup layak. Timing = apakah harganya pantas hari ini. Keduanya harus lulus.</div>';
+h+='<div style="font-size:0.66rem;color:#64748b;margin-top:8px;">Kualitas = apakah setup layak. Timing = apakah harganya pantas. Badge FINAL = semua agent sudah terbaca.</div>';
 box.innerHTML=h;
 }
 var trendEl=document.getElementById('valTrend');
 var obs=new MutationObserver(function(){clearTimeout(obs._t);obs._t=setTimeout(function(){
 var c=window.lastTicker;if(!c)return;
+window.__graderFinalFor=null;
 var box=document.getElementById('graderOut');if(box)box.innerHTML='<div class="skel-box" style="height:60px"></div>';
 waitAgents(8000).then(function(){return grade(c);}).then(render).catch(function(e){if(box)box.innerHTML='<span style="color:var(--red);">Grader gagal: '+esc(e.message)+'</span>';});
 },900);});
 if(trendEl)obs.observe(trendEl,{childList:true,characterData:true,subtree:true});
+function attachReRead(){
+var ids=['bandarOut','moneyflowOut','regimeOut'];
+var present=0;
+for(var i=0;i<ids.length;i++){if(document.getElementById(ids[i]))present++;}
+if(present<3){setTimeout(attachReRead,1000);return;}
+var ro=new MutationObserver(function(){clearTimeout(ro._t);ro._t=setTimeout(function(){
+var c=window.lastTicker;if(!c)return;
+if(!agentsReady())return;
+if(window.__graderFinalFor===c)return;
+window.__graderFinalFor=c;
+grade(c).then(render).catch(function(){});
+},900);});
+for(var j=0;j<ids.length;j++){
+var e=document.getElementById(ids[j]);
+if(e)ro.observe(e,{childList:true,characterData:true,subtree:true});
+}
+}
+setTimeout(attachReRead,1500);
 })();
-/* END agent-grader v4 */
+/* END agent-grader v5 */
