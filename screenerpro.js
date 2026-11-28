@@ -1,4 +1,4 @@
-/* screenerpro v2 - Screener Peluang Hari Ini: multi-index, rules live, saved views, drawer, bulk, undo + hapus permanen alat value-scan lama */
+/* screenerpro v3 - Screener Peluang Hari Ini: layout longgar mobile + mode layar penuh + rules 2 baris + indeks wrap penuh + input 16px anti-zoom iOS */
 (function(){
 if(!window.P||!window.SW)return;
 var SW=window.SW;
@@ -80,13 +80,53 @@ function f1(n){if(n==null||!isFinite(n))return '-';return n.toFixed(1);}
 function injectStyle(){
 if(document.getElementById('spStyle'))return;
 var st=document.createElement('style');st.id='spStyle';
-st.textContent='.sp-scroll{overflow-y:auto;scrollbar-width:thin;scrollbar-color:#a3e635 rgba(163,230,53,.08);}.sp-scroll::-webkit-scrollbar{width:9px;height:9px;}.sp-scroll::-webkit-scrollbar-track{background:rgba(163,230,53,.07);border-radius:9px;}.sp-scroll::-webkit-scrollbar-thumb{background:linear-gradient(180deg,#a3e635,#38bdf8);border-radius:9px;border:2px solid rgba(11,18,32,.9);}.sp-scroll::-webkit-scrollbar-thumb:hover{background:linear-gradient(180deg,#bef264,#7dd3fc);}.sp-chip{display:inline-flex;align-items:center;gap:5px;font-size:0.68rem;padding:4px 9px;border-radius:999px;border:1px solid rgba(163,230,53,.35);background:rgba(163,230,53,.08);color:#d9f99d;cursor:pointer;user-select:none;}.sp-chip.on{background:linear-gradient(90deg,rgba(163,230,53,.28),rgba(56,189,248,.22));border-color:#a3e635;color:#fff;font-weight:800;}.sp-row{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:7px 6px;border-bottom:1px dashed rgba(163,230,53,.14);cursor:pointer;transition:background .15s;}.sp-row:hover{background:rgba(56,189,248,.08);}.sp-tier{font-family:var(--mono);font-weight:900;font-size:1rem;padding:2px 8px;border-radius:8px;}.sp-t3{background:linear-gradient(90deg,#a3e635,#22c55e);color:#0b1220;}.sp-t2{background:linear-gradient(90deg,#fbbf24,#f59e0b);color:#0b1220;}.sp-t1{background:linear-gradient(90deg,#38bdf8,#6366f1);color:#fff;}.sp-t0{background:rgba(148,163,184,.25);color:#cbd5e1;}.sp-scrim{position:fixed;inset:0;background:rgba(4,8,16,.66);backdrop-filter:blur(3px);z-index:9998;opacity:0;transition:opacity .2s;}.sp-scrim.on{opacity:1;}.sp-drawer{position:fixed;top:0;right:0;height:100%;width:min(430px,94vw);background:linear-gradient(160deg,#0b1220,#101a2e 60%,#0d1526);border-left:1px solid rgba(163,230,53,.35);z-index:9999;transform:translateX(102%);transition:transform .24s cubic-bezier(.2,.8,.2,1);padding:14px;box-sizing:border-box;}.sp-drawer.on{transform:translateX(0);}.sp-rule{display:flex;gap:5px;align-items:center;padding:4px 0;}.sp-rule select,.sp-rule input{margin-top:0;}.sp-undo{display:flex;gap:8px;align-items:center;padding:6px 8px;border:1px solid rgba(251,191,36,.4);border-radius:10px;background:rgba(251,191,36,.08);margin:6px 0;}';
+st.textContent=''
++'#screenerproCard input,#screenerproCard select,.sp3-full input,.sp3-full select{font-size:16px;}'
++'.sp3-btn{min-height:42px;padding:8px 14px;border-radius:12px;border:1px solid rgba(163,230,53,.4);background:linear-gradient(90deg,rgba(163,230,53,.16),rgba(56,189,248,.14));color:#e2e8f0;font-weight:700;font-size:0.82rem;cursor:pointer;}'
++'.sp3-btn:active{transform:scale(.97);}'
++'.sp3-mini{min-height:40px;min-width:40px;padding:6px 10px;border-radius:10px;border:1px solid rgba(148,163,184,.3);background:rgba(148,163,184,.12);color:#e2e8f0;font-size:0.85rem;cursor:pointer;}'
++'.sp3-mini:active{transform:scale(.95);}'
++'.sp3-toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:10px 0;margin-bottom:10px;border-bottom:1px solid rgba(163,230,53,.2);}'
++'.sp3-idx{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 14px;}'
++'.sp3-chip{display:inline-flex;align-items:center;gap:6px;font-size:0.78rem;padding:8px 13px;border-radius:999px;border:1px solid rgba(163,230,53,.35);background:rgba(163,230,53,.08);color:#d9f99d;cursor:pointer;user-select:none;}'
++'.sp3-chip.on{background:linear-gradient(90deg,rgba(163,230,53,.3),rgba(56,189,248,.24));border-color:#a3e635;color:#fff;font-weight:800;box-shadow:0 0 12px rgba(163,230,53,.25);}'
++'.sp3-rule{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:10px 8px;margin-bottom:8px;border:1px solid rgba(148,163,184,.18);border-radius:14px;background:rgba(16,26,46,.6);}'
++'.sp3-h{cursor:grab;color:#64748b;font-size:1rem;flex:0 0 20px;}'
++'.sp3-m{flex:1 1 160px;min-width:0;}'
++'.sp3-o{flex:0 0 76px;}'
++'.sp3-v{flex:1 1 80px;min-width:70px;}'
++'.sp3-rule select,.sp3-rule input{width:100%;margin-top:0;padding:9px 10px;border-radius:10px;border:1px solid rgba(148,163,184,.3);background:rgba(11,18,32,.8);color:#e2e8f0;}'
++'@media(max-width:640px){.sp3-m{flex:1 1 calc(100% - 76px);order:1;}.sp3-h{order:0;}.sp3-del{order:2;}.sp3-o{order:3;flex:0 0 84px;}.sp3-v{order:4;}.sp3-up{order:5;}.sp3-dn{order:6;}}'
++'.sp3-row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 8px;border-bottom:1px dashed rgba(163,230,53,.16);cursor:pointer;transition:background .15s;}'
++'.sp3-row:hover{background:rgba(56,189,248,.08);}'
++'.sp3-tier{font-family:var(--mono);font-weight:900;font-size:1.05rem;padding:4px 10px;border-radius:10px;}'
++'.sp3-t3{background:linear-gradient(90deg,#a3e635,#22c55e);color:#0b1220;}'
++'.sp3-t2{background:linear-gradient(90deg,#fbbf24,#f59e0b);color:#0b1220;}'
++'.sp3-t1{background:linear-gradient(90deg,#38bdf8,#6366f1);color:#fff;}'
++'.sp3-t0{background:rgba(148,163,184,.25);color:#cbd5e1;}'
++'.sp3-sec{font-size:0.72rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#94a3b8;margin:14px 0 6px;}'
++'.sp3-full{position:fixed;inset:0;z-index:9990;overflow-y:auto;padding:14px 14px 100px;background:radial-gradient(900px 400px at 15% -5%,rgba(163,230,53,.14),transparent 60%),radial-gradient(800px 420px at 90% 10%,rgba(56,189,248,.14),transparent 60%),radial-gradient(700px 500px at 50% 110%,rgba(232,121,249,.10),transparent 60%),linear-gradient(180deg,#0b1220,#0d1526 55%,#0b1220);scrollbar-width:thin;scrollbar-color:#a3e635 rgba(163,230,53,.08);}'
++'.sp3-full::-webkit-scrollbar{width:10px;}'
++'.sp3-full::-webkit-scrollbar-track{background:rgba(163,230,53,.07);}'
++'.sp3-full::-webkit-scrollbar-thumb{background:linear-gradient(180deg,#a3e635,#38bdf8);border-radius:10px;border:2px solid #0b1220;}'
++'.sp3-full::-webkit-scrollbar-thumb:hover{background:linear-gradient(180deg,#bef264,#7dd3fc);}'
++'.sp3-full .sp3-toolbar{position:sticky;top:0;z-index:6;background:rgba(11,18,32,.94);backdrop-filter:blur(8px);}'
++'.sp3-full #screenerproCard{max-width:920px;margin:0 auto;background:transparent;border:none;box-shadow:none;padding:0;}'
++'.sp3-scrim{position:fixed;inset:0;background:rgba(4,8,16,.66);backdrop-filter:blur(3px);z-index:9998;opacity:0;transition:opacity .2s;}'
++'.sp3-scrim.on{opacity:1;}'
++'.sp3-drawer{position:fixed;top:0;right:0;height:100%;width:min(440px,96vw);background:linear-gradient(160deg,#0b1220,#101a2e 60%,#0d1526);border-left:1px solid rgba(163,230,53,.35);z-index:9999;transform:translateX(102%);transition:transform .24s cubic-bezier(.2,.8,.2,1);padding:16px;box-sizing:border-box;overflow-y:auto;scrollbar-width:thin;scrollbar-color:#a3e635 rgba(163,230,53,.08);}'
++'.sp3-drawer::-webkit-scrollbar{width:9px;}'
++'.sp3-drawer::-webkit-scrollbar-track{background:rgba(163,230,53,.07);}'
++'.sp3-drawer::-webkit-scrollbar-thumb{background:linear-gradient(180deg,#a3e635,#38bdf8);border-radius:9px;}'
++'.sp3-drawer.on{transform:translateX(0);}'
++'.sp3-undo{display:flex;gap:8px;align-items:center;padding:8px 10px;border:1px solid rgba(251,191,36,.4);border-radius:12px;background:rgba(251,191,36,.08);margin:8px 0;}';
 document.head.appendChild(st);
 }
 var scanCache=lsJSON('sp_cache',null);
 var bulk={};
 var undoSnap=null;var undoTimer=0;
 var dragIdx=-1;
+var fullOn=false;
 function metLabel(k){for(var i=0;i<MET.length;i++){if(MET[i].k===k)return MET[i].lab;}return k;}
 function passRule(row,r){
 var v=row.m?row.m[r.m]:null;
@@ -136,7 +176,7 @@ async function scan(force){
 var btn=document.getElementById('spScan');
 var out=document.getElementById('spResults');
 var uni=universe();
-if(!uni.length){out.innerHTML='<div style="color:var(--yellow);font-size:0.78rem;">Pilih minimal satu indeks atau Watchlist.</div>';return;}
+if(!uni.length){out.innerHTML='<div style="color:var(--yellow);font-size:0.82rem;padding:10px 0;">Pilih minimal satu indeks atau Watchlist.</div>';return;}
 var fresh=scanCache&&scanCache.t&&Date.now()-scanCache.t<6*3600000;
 var rows=(fresh&&!force)?scanCache.rows.slice():[];
 var have={};
@@ -145,7 +185,7 @@ var need=[];
 for(var u=0;u<uni.length;u++){if(!have[uni[u]])need.push(uni[u]);}
 if(force){need=uni.slice();rows=[];}
 if(btn){btn.disabled=true;btn.innerText='Scanning '+need.length+' saham...';}
-out.innerHTML='<div class="skel-box" style="height:90px"></div>';
+out.innerHTML='<div class="skel-box" style="height:110px"></div>';
 for(var c=0;c<need.length;c+=6){
 var chunk=need.slice(c,c+6);
 var settled=await Promise.allSettled(chunk.map(function(code){
@@ -220,29 +260,29 @@ if(note)note.innerText='Universe '+universe().length+' saham • lolos '+pass.le
 var h='';
 var bulkN=Object.keys(bulk).length;
 if(bulkN>0){
-h+='<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;padding:6px 8px;border:1px solid rgba(56,189,248,.4);border-radius:10px;background:rgba(56,189,248,.08);margin-bottom:6px;"><span style="font-size:0.72rem;font-weight:800;color:#7dd3fc;">'+bulkN+' dipilih</span><button class="btn-mini" onclick="SCREENERPRO.bulkWatch()">⭐ Watchlist</button><button class="btn-mini" onclick="SCREENERPRO.bulkCopy()">📋 Salin</button><button class="btn-mini" onclick="SCREENERPRO.bulkClear()">✕</button></div>';
+h+='<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:10px;border:1px solid rgba(56,189,248,.4);border-radius:14px;background:rgba(56,189,248,.08);margin-bottom:10px;"><span style="font-size:0.8rem;font-weight:800;color:#7dd3fc;">'+bulkN+' dipilih</span><button class="sp3-mini" onclick="SCREENERPRO.bulkWatch()">⭐ Watchlist</button><button class="sp3-mini" onclick="SCREENERPRO.bulkCopy()">📋 Salin</button><button class="sp3-mini" onclick="SCREENERPRO.bulkClear()">✕</button></div>';
 }
 if(!pass.length){
-h+='<div style="color:var(--yellow);font-size:0.78rem;padding:8px 0;">Tidak ada yang lolos rules saat ini. Longgarkan aturan atau pilih indeks lain — disiplin menunggu juga posisi.</div>';
+h+='<div style="color:var(--yellow);font-size:0.85rem;padding:12px 0;line-height:1.6;">Tidak ada yang lolos rules saat ini. Longgarkan aturan atau pilih indeks lain — disiplin menunggu juga posisi.</div>';
 }
 for(var p=0;p<pass.length;p++){
 var row=pass[p];var m=row.m||{};
-var tier=row.score>=7?'sp-t3':row.score>=5?'sp-t2':row.score>=3?'sp-t1':'sp-t0';
+var tier=row.score>=7?'sp3-t3':row.score>=5?'sp3-t2':row.score>=3?'sp3-t1':'sp3-t0';
 var fire=row.score>=7?' 🔥':'';
-h+='<div class="sp-row" onclick="SCREENERPRO.drawer(\''+row.code+'\')">';
-h+='<span style="display:flex;align-items:center;gap:6px;"><input type="checkbox" '+(bulk[row.code]?'checked':'')+' onclick="event.stopPropagation();SCREENERPRO.bulkToggle(\''+row.code+'\')" style="margin-top:0;"><span><strong style="color:#fff;">'+row.code+'</strong>'+fire+' <span style="font-size:0.66rem;color:var(--text-muted);">skor '+f1(row.score)+' • MOS '+(m.mos!=null?(m.mos>=0?'+':'')+f1(m.mos)+'%':'-')+'</span><br><span style="font-size:0.64rem;color:#94a3b8;font-family:var(--mono);">PER '+f1(m.pe)+' • PBV '+f1(m.pbv)+' • ROE '+f1(m.roe)+'%</span></span></span>';
-h+='<span style="text-align:right;"><span class="sp-tier '+tier+'">'+f1(row.score)+'</span><br><span style="font-size:0.68rem;font-family:var(--mono);color:#e2e8f0;">'+fmt(m.price)+'</span></span>';
+h+='<div class="sp3-row" onclick="SCREENERPRO.drawer(\''+row.code+'\')">';
+h+='<span style="display:flex;align-items:center;gap:10px;min-width:0;"><input type="checkbox" '+(bulk[row.code]?'checked':'')+' onclick="event.stopPropagation();SCREENERPRO.bulkToggle(\''+row.code+'\')" style="margin-top:0;width:20px;height:20px;flex:0 0 20px;"><span style="min-width:0;"><strong style="color:#fff;font-size:0.95rem;">'+row.code+'</strong>'+fire+' <span style="font-size:0.72rem;color:var(--text-muted);">skor '+f1(row.score)+' • MOS '+(m.mos!=null?(m.mos>=0?'+':'')+f1(m.mos)+'%':'-')+'</span><br><span style="font-size:0.7rem;color:#94a3b8;font-family:var(--mono);">PER '+f1(m.pe)+' • PBV '+f1(m.pbv)+' • ROE '+f1(m.roe)+'%</span></span></span>';
+h+='<span style="text-align:right;flex:0 0 auto;"><span class="sp3-tier '+tier+'">'+f1(row.score)+'</span><br><span style="font-size:0.75rem;font-family:var(--mono);color:#e2e8f0;">'+fmt(m.price)+'</span></span>';
 h+='</div>';
 }
 var showF=document.getElementById('spFailed');
 if(showF&&showF.checked&&fail.length){
-h+='<div style="font-size:0.72rem;font-weight:800;color:#94a3b8;margin:8px 0 4px;">✕ Tidak lolos ('+fail.length+')</div>';
+h+='<div class="sp3-sec">✕ Tidak lolos ('+fail.length+')</div>';
 for(var f=0;f<fail.length;f++){
 var fr=fail[f];
-h+='<div class="sp-row" style="opacity:.65;" onclick="SCREENERPRO.drawer(\''+fr.code+'\')"><span><strong>'+fr.code+'</strong> <span style="font-size:0.64rem;color:#f87171;">gagal: '+failReason(fr,rs)+'</span></span><span style="font-size:0.68rem;font-family:var(--mono);">'+f1(fr.score)+'</span></div>';
+h+='<div class="sp3-row" style="opacity:.65;" onclick="SCREENERPRO.drawer(\''+fr.code+'\')"><span><strong>'+fr.code+'</strong> <span style="font-size:0.7rem;color:#f87171;">gagal: '+failReason(fr,rs)+'</span></span><span style="font-size:0.75rem;font-family:var(--mono);">'+f1(fr.score)+'</span></div>';
 }
 }
-h+='<div style="font-size:0.62rem;color:#64748b;margin-top:6px;">Fair value model = rata-rata (EPS×12, BV×ROE/12). MOS = (fair−harga)/fair. Snapshot konstituen indeks per Nov 2026; BUKAN rekomendasi beli.</div>';
+h+='<div style="font-size:0.66rem;color:#64748b;margin-top:10px;line-height:1.6;">Fair value model = rata-rata (EPS×12, BV×ROE/12). MOS = (fair−harga)/fair. Snapshot konstituen indeks per Nov 2026; BUKAN rekomendasi beli.</div>';
 out.innerHTML=h;
 }
 function renderRules(){
@@ -252,22 +292,22 @@ var rs=rules();
 var h='';
 for(var i=0;i<rs.length;i++){
 var r=rs[i];
-h+='<div class="sp-rule" draggable="true" data-i="'+i+'">';
-h+='<span style="cursor:grab;color:#64748b;font-size:0.8rem;">⠿</span>';
-h+='<select class="fv-input" style="width:46%;" onchange="SCREENERPRO.ruleSet('+i+',\'m\',this.value)">';
+h+='<div class="sp3-rule" draggable="true" data-i="'+i+'">';
+h+='<span class="sp3-h">⠿</span>';
+h+='<span class="sp3-m"><select onchange="SCREENERPRO.ruleSet('+i+',\'m\',this.value)">';
 for(var m=0;m<MET.length;m++){h+='<option value="'+MET[m].k+'"'+(MET[m].k===r.m?' selected':'')+'>'+MET[m].lab+'</option>';}
-h+='</select>';
-h+='<select class="fv-input" style="width:64px;" onchange="SCREENERPRO.ruleSet('+i+',\'op\',this.value)">';
+h+='</select></span>';
+h+='<span class="sp3-o"><select onchange="SCREENERPRO.ruleSet('+i+',\'op\',this.value)">';
 for(var o=0;o<OPS.length;o++){h+='<option value="'+OPS[o]+'"'+(OPS[o]===r.op?' selected':'')+'>'+OPS[o]+'</option>';}
-h+='</select>';
-h+='<input type="number" step="any" class="fv-input" style="width:70px;" value="'+r.v+'" onchange="SCREENERPRO.ruleSet('+i+',\'v\',this.value)">';
-h+='<button class="btn-mini" onclick="SCREENERPRO.ruleMove('+i+',-1)">▲</button>';
-h+='<button class="btn-mini" onclick="SCREENERPRO.ruleMove('+i+',1)">▼</button>';
-h+='<button class="btn-mini" onclick="SCREENERPRO.ruleDel('+i+')">🗑</button>';
+h+='</select></span>';
+h+='<span class="sp3-v"><input type="number" step="any" value="'+r.v+'" onchange="SCREENERPRO.ruleSet('+i+',\'v\',this.value)"></span>';
+h+='<button class="sp3-mini sp3-up" onclick="SCREENERPRO.ruleMove('+i+',-1)">▲</button>';
+h+='<button class="sp3-mini sp3-dn" onclick="SCREENERPRO.ruleMove('+i+',1)">▼</button>';
+h+='<button class="sp3-mini sp3-del" onclick="SCREENERPRO.ruleDel('+i+')">🗑</button>';
 h+='</div>';
 }
 box.innerHTML=h;
-var rows=box.querySelectorAll('.sp-rule');
+var rows=box.querySelectorAll('.sp3-rule');
 for(var d=0;d<rows.length;d++){
 rows[d].addEventListener('dragstart',function(e){dragIdx=parseInt(this.getAttribute('data-i'),10);});
 rows[d].addEventListener('dragover',function(e){e.preventDefault();});
@@ -287,17 +327,34 @@ var sel=indices();
 var h='';
 for(var i=0;i<ORDER.length;i++){
 var name=ORDER[i];var on=sel.indexOf(name)>=0;
-h+='<span class="sp-chip'+(on?' on':'')+'" onclick="SCREENERPRO.idxToggle(\''+name+'\')">'+(on?'✅ ':'')+name+' <span style="opacity:.7;">'+IDX[name].length+'</span></span> ';
+h+='<span class="sp3-chip'+(on?' on':'')+'" onclick="SCREENERPRO.idxToggle(\''+name+'\')">'+(on?'✅ ':'')+name+' <span style="opacity:.7;">'+IDX[name].length+'</span></span>';
 }
 box.innerHTML=h;
 }
-function showUndo(label,kind){
+function showUndo(label){
 var bar=document.getElementById('spUndo');
 if(!bar)return;
 bar.style.display='flex';
-bar.innerHTML='<span style="font-size:0.72rem;color:var(--yellow);">⚠ '+label+'</span><button class="btn-mini" onclick="SCREENERPRO.undo()">↩ Undo</button>';
+bar.innerHTML='<span style="font-size:0.78rem;color:var(--yellow);">⚠ '+label+'</span><button class="sp3-mini" onclick="SCREENERPRO.undo()">↩ Undo</button>';
 clearTimeout(undoTimer);
 undoTimer=setTimeout(function(){bar.style.display='none';undoSnap=null;},9000);
+}
+function setFull(on){
+fullOn=on;
+var card=document.getElementById('screenerproCard');
+var tab=document.getElementById('tab-market');
+var ov=document.getElementById('spFull');
+if(on){
+if(!ov){ov=document.createElement('div');ov.id='spFull';ov.className='sp3-full';document.body.appendChild(ov);}
+ov.appendChild(card);
+ov.style.display='block';
+document.body.style.overflow='hidden';
+}else{
+if(ov){ov.style.display='none';if(card&&ov.contains(card))tab.insertBefore(card,tab.firstChild);}
+document.body.style.overflow='';
+}
+var b=document.getElementById('spFullBtn');
+if(b)b.innerText=on?'🗗 Keluar layar penuh':'⛶ Layar penuh';
 }
 function mount(){
 var tab=document.getElementById('tab-market');
@@ -307,33 +364,35 @@ injectStyle();
 killLegacy();
 var card=document.createElement('div');
 card.className='card';card.id='screenerproCard';
-var h='<div class="card-title"><span>🎯 Screener Pro</span><span class="agent-pill master" style="background:linear-gradient(90deg,rgba(163,230,53,.25),rgba(56,189,248,.25));">Peluang Hari Ini • Multi-Index</span></div>';
-h+='<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:6px;">';
-h+='<button class="btn-copy" style="margin-top:0;" id="spScan" onclick="SCREENERPRO.scan(false)">🎯 Scan Universe</button>';
-h+='<button class="btn-mini" onclick="SCREENERPRO.scan(true)">⚡ Paksa</button>';
-h+='<select id="spSort" class="fv-input" style="width:110px;margin-top:0;"><option value="score">Sort: Skor</option><option value="mos">Sort: MOS</option><option value="pe">Sort: PER</option><option value="pbv">Sort: PBV</option><option value="roe">Sort: ROE</option><option value="divY">Sort: Dividen</option><option value="ret1y">Sort: Return 1y</option></select>';
-h+='<button class="btn-mini" id="spDir" data-d="desc" onclick="SCREENERPRO.dir()">⬇</button>';
-h+='<input id="spSearch" class="fv-input" style="width:90px;margin-top:0;" placeholder="Cari kode">';
-h+='<label style="display:flex;gap:5px;align-items:center;font-size:0.68rem;color:var(--text-muted);"><input type="checkbox" id="spLegacy" style="margin-top:0;" onchange="SCREENERPRO.legacy(this.checked)"> 🗑 Hapus alat lama</label>';
+var h='<div class="card-title"><span>🎯 Screener Pro</span><span class="agent-pill master" style="background:linear-gradient(90deg,rgba(163,230,53,.25),rgba(56,189,248,.25),rgba(232,121,249,.2));">Peluang Hari Ini • Multi-Index</span></div>';
+h+='<div class="sp3-toolbar" id="spToolbar">';
+h+='<button class="sp3-btn" id="spScan" onclick="SCREENERPRO.scan(false)">🎯 Scan Universe</button>';
+h+='<button class="sp3-mini" onclick="SCREENERPRO.scan(true)">⚡</button>';
+h+='<button class="sp3-btn" id="spFullBtn" onclick="SCREENERPRO.full(!window.__spFullOn())">⛶ Layar penuh</button>';
+h+='<select id="spSort" class="fv-input" style="width:130px;margin-top:0;"><option value="score">Sort: Skor</option><option value="mos">Sort: MOS</option><option value="pe">Sort: PER</option><option value="pbv">Sort: PBV</option><option value="roe">Sort: ROE</option><option value="divY">Sort: Dividen</option><option value="ret1y">Sort: Return 1y</option></select>';
+h+='<button class="sp3-mini" id="spDir" data-d="desc" onclick="SCREENERPRO.dir()">⬇</button>';
+h+='<input id="spSearch" class="fv-input" style="width:110px;margin-top:0;" placeholder="Cari kode">';
+h+='<label style="display:flex;gap:6px;align-items:center;font-size:0.74rem;color:var(--text-muted);"><input type="checkbox" id="spLegacy" style="margin-top:0;width:18px;height:18px;" onchange="SCREENERPRO.legacy(this.checked)"> 🗑 Hapus alat lama</label>';
 h+='</div>';
-h+='<div style="font-size:0.66rem;color:var(--text-muted);margin-bottom:4px;">Universe (pilih beberapa indeks):</div>';
-h+='<div id="spIdx" class="sp-scroll" style="max-height:86px;margin-bottom:6px;line-height:2;"></div>';
-h+='<label style="display:flex;gap:6px;align-items:center;font-size:0.7rem;color:var(--text-muted);margin-bottom:6px;"><input type="checkbox" id="spWL" style="margin-top:0;" onchange="SCREENERPRO.live()"> + Watchlist saya</label>';
-h+='<div style="font-size:0.66rem;color:var(--text-muted);margin-bottom:4px;">Rules (live, geser ⠿ untuk urutan):</div>';
-h+='<div id="spRules" class="sp-scroll" style="max-height:150px;margin-bottom:6px;"></div>';
-h+='<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:6px;">';
-h+='<button class="btn-mini" onclick="SCREENERPRO.ruleAdd()">＋ Add Rule</button>';
-h+='<select id="spPreset" class="fv-input" style="width:120px;margin-top:0;"><option value="">Preset...</option></select>';
-h+='<button class="btn-mini" onclick="SCREENERPRO.preset()">⚡ Terapkan</button>';
-h+='<button class="btn-mini" onclick="SCREENERPRO.viewSave()">💾 Save view</button>';
-h+='<select id="spViews" class="fv-input" style="width:110px;margin-top:0;"><option value="">Views...</option></select>';
-h+='<button class="btn-mini" onclick="SCREENERPRO.viewLoad()">📂</button>';
-h+='<button class="btn-mini" onclick="SCREENERPRO.viewDel()">🗑</button>';
+h+='<div class="sp3-sec">Universe — pilih beberapa indeks</div>';
+h+='<div id="spIdx" class="sp3-idx"></div>';
+h+='<label style="display:flex;gap:8px;align-items:center;font-size:0.8rem;color:var(--text-muted);margin-bottom:6px;"><input type="checkbox" id="spWL" style="margin-top:0;width:18px;height:18px;" onchange="SCREENERPRO.live()"> + Watchlist saya</label>';
+h+='<div class="sp3-sec">Rules — live, geser ⠿ untuk urutan</div>';
+h+='<div id="spRules"></div>';
+h+='<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:10px 0;">';
+h+='<button class="sp3-mini" onclick="SCREENERPRO.ruleAdd()">＋ Add Rule</button>';
+h+='<select id="spPreset" class="fv-input" style="width:140px;margin-top:0;"><option value="">Preset...</option></select>';
+h+='<button class="sp3-mini" onclick="SCREENERPRO.preset()">⚡ Terapkan</button>';
+h+='<button class="sp3-mini" onclick="SCREENERPRO.viewSave()">💾 Save view</button>';
+h+='<select id="spViews" class="fv-input" style="width:130px;margin-top:0;"><option value="">Views...</option></select>';
+h+='<button class="sp3-mini" onclick="SCREENERPRO.viewLoad()">📂</button>';
+h+='<button class="sp3-mini" onclick="SCREENERPRO.viewDel()">🗑</button>';
 h+='</div>';
-h+='<div id="spUndo" class="sp-undo" style="display:none;"></div>';
-h+='<label style="display:flex;gap:6px;align-items:center;font-size:0.7rem;color:var(--text-muted);margin-bottom:6px;"><input type="checkbox" id="spFailed" style="margin-top:0;" onchange="SCREENERPRO.live()"> tampilkan yang tidak lolos</label>';
-h+='<div id="spNote" style="font-size:0.68rem;color:var(--text-muted);margin-bottom:6px;"></div>';
-h+='<div id="spResults" class="sp-scroll" style="max-height:430px;"></div>';
+h+='<div id="spUndo" class="sp3-undo" style="display:none;"></div>';
+h+='<label style="display:flex;gap:8px;align-items:center;font-size:0.8rem;color:var(--text-muted);margin:6px 0;"><input type="checkbox" id="spFailed" style="margin-top:0;width:18px;height:18px;" onchange="SCREENERPRO.live()"> tampilkan yang tidak lolos</label>';
+h+='<div id="spNote" style="font-size:0.74rem;color:var(--text-muted);margin-bottom:8px;"></div>';
+h+='<div class="sp3-sec">Hasil</div>';
+h+='<div id="spResults"></div>';
 card.innerHTML=h;
 tab.insertBefore(card,tab.firstChild);
 var lg=document.getElementById('spLegacy');if(lg)lg.checked=legacyOff();
@@ -349,6 +408,7 @@ renderIndices();renderRules();renderResults();
 killLegacy();
 var mo=new MutationObserver(function(){clearTimeout(mo._t);mo._t=setTimeout(killLegacy,150);});
 mo.observe(tab,{childList:true,subtree:true});
+document.addEventListener('keydown',function(e){if(e.key==='Escape'&&fullOn)setFull(false);});
 }
 function openDrawer(code){
 var rows=(scanCache&&scanCache.rows)||[];
@@ -358,21 +418,21 @@ if(!row)return;
 var m=row.m||{};
 var scrim=document.getElementById('spScrim');
 var dr=document.getElementById('spDrawer');
-if(!scrim){scrim=document.createElement('div');scrim.id='spScrim';scrim.className='sp-scrim';scrim.onclick=function(){closeDrawer();};document.body.appendChild(scrim);}
-if(!dr){dr=document.createElement('div');dr.id='spDrawer';dr.className='sp-drawer sp-scroll';document.body.appendChild(dr);}
+if(!scrim){scrim=document.createElement('div');scrim.id='spScrim';scrim.className='sp3-scrim';scrim.onclick=function(){closeDrawer();};document.body.appendChild(scrim);}
+if(!dr){dr=document.createElement('div');dr.id='spDrawer';dr.className='sp3-drawer';document.body.appendChild(dr);}
 var rs=rules();
-var h='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;"><span style="font-size:1.1rem;font-weight:900;color:#fff;">'+code+'</span><button class="btn-mini" onclick="SCREENERPRO.close()">✕</button></div>';
-h+='<div style="font-size:0.72rem;color:var(--text-muted);margin-bottom:8px;">Harga '+fmt(m.price)+' • skor '+f1(row.score)+' • MOS '+(m.mos!=null?(m.mos>=0?'+':'')+f1(m.mos)+'%':'-')+' • fair model '+fmt(m.fair)+'</div>';
-h+='<div class="metric-grid" style="margin-bottom:8px;">';
+var h='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;"><span style="font-size:1.2rem;font-weight:900;color:#fff;">'+code+'</span><button class="sp3-mini" onclick="SCREENERPRO.close()">✕</button></div>';
+h+='<div style="font-size:0.78rem;color:var(--text-muted);margin-bottom:10px;line-height:1.6;">Harga '+fmt(m.price)+' • skor '+f1(row.score)+' • MOS '+(m.mos!=null?(m.mos>=0?'+':'')+f1(m.mos)+'%':'-')+' • fair model '+fmt(m.fair)+'</div>';
+h+='<div class="metric-grid" style="margin-bottom:10px;">';
 var cells=[['PER',f1(m.pe)],['PBV',f1(m.pbv)],['ROE',f1(m.roe)+'%'],['DER',f1(m.de)+'%'],['Rev G',f1(m.revG)+'%'],['Laba G',f1(m.niG)+'%'],['Div Yield',f1(m.divY)+'%'],['Mkt Cap',fmt(m.mcB)+'M'],['Laba',fmt(m.niB)+'M'],['Ret 1y',f1(m.ret1y)+'%'],['RSI',f1(m.rsi)],['Vol R',f1(m.vr)]];
-for(var c=0;c<cells.length;c++){h+='<div class="metric-box"><div class="metric-label">'+cells[c][0]+'</div><div class="metric-value" style="font-size:0.9rem;">'+cells[c][1]+'</div></div>';}
+for(var c=0;c<cells.length;c++){h+='<div class="metric-box"><div class="metric-label">'+cells[c][0]+'</div><div class="metric-value" style="font-size:0.95rem;">'+cells[c][1]+'</div></div>';}
 h+='</div>';
-h+='<div style="font-size:0.74rem;font-weight:800;color:#fff;margin:6px 0 4px;">🚦 Rules checklist</div>';
+h+='<div class="sp3-sec">🚦 Rules checklist</div>';
 for(var r=0;r<rs.length;r++){
 var ok=passRule(row,rs[r]);
-h+='<div style="display:flex;justify-content:space-between;font-size:0.7rem;padding:2px 0;border-bottom:1px dashed rgba(163,230,53,.12);"><span>'+(ok?'✅':'❌')+' '+metLabel(rs[r].m)+' '+rs[r].op+' '+rs[r].v+'</span><span style="font-family:var(--mono);color:#e2e8f0;">'+f1(m[rs[r].m])+'</span></div>';
+h+='<div style="display:flex;justify-content:space-between;font-size:0.76rem;padding:5px 0;border-bottom:1px dashed rgba(163,230,53,.12);"><span>'+(ok?'✅':'❌')+' '+metLabel(rs[r].m)+' '+rs[r].op+' '+rs[r].v+'</span><span style="font-family:var(--mono);color:#e2e8f0;">'+f1(m[rs[r].m])+'</span></div>';
 }
-h+='<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;"><button class="btn-copy" style="margin-top:0;" onclick="SCREENERPRO.proses(\''+code+'\')">⚡ Proses</button><button class="btn-copy" style="margin-top:0;" onclick="SCREENERPRO.watch(\''+code+'\')">⭐ Watchlist</button><button class="btn-copy" style="margin-top:0;" onclick="SCREENERPRO.journal(\''+code+'\')">📓 Jurnal</button></div>';
+h+='<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;"><button class="sp3-btn" onclick="SCREENERPRO.proses(\''+code+'\')">⚡ Proses</button><button class="sp3-btn" onclick="SCREENERPRO.watch(\''+code+'\')">⭐ Watchlist</button><button class="sp3-btn" onclick="SCREENERPRO.journal(\''+code+'\')">📓 Jurnal</button></div>';
 dr.innerHTML=h;
 scrim.style.display='block';dr.style.display='block';
 requestAnimationFrame(function(){scrim.classList.add('on');dr.classList.add('on');});
@@ -394,8 +454,10 @@ var arr=lsJSON('ihsg_watchlist',[]);
 if(arr.indexOf(code)<0)arr.push(code);
 saveLS('ihsg_watchlist',arr);
 }
+window.__spFullOn=function(){return fullOn;};
 window.SCREENERPRO={
 scan:scan,
+full:setFull,
 live:function(){renderResults();},
 legacy:function(on){
 setLegacyOff(on);
@@ -418,7 +480,7 @@ ruleAdd:function(){
 var rs=rules();rs.push({m:'pe',op:'<',v:15});saveRules(rs);renderRules();renderResults();
 },
 ruleDel:function(i){
-undoSnap={kind:'rules',rules:rules(),views:views()};
+undoSnap={rules:rules(),views:views()};
 var rs=rules();rs.splice(i,1);saveRules(rs);renderRules();renderResults();showUndo('Rule dihapus.');
 },
 ruleMove:function(i,d){
@@ -451,7 +513,7 @@ renderIndices();renderRules();renderResults();toast('📂 View '+v.name+' dimuat
 viewDel:function(){
 var vs=document.getElementById('spViews');var vv=views();var i=parseInt(vs.value,10);
 if(!vv[i]){toast('Pilih view dulu.');return;}
-undoSnap={kind:'rules',rules:rules(),views:vv.slice()};
+undoSnap={rules:rules(),views:vv.slice()};
 var name=vv[i].name;vv.splice(i,1);saveViews(vv);
 vs.innerHTML='<option value="">Views...</option>';
 for(var k=0;k<vv.length;k++){vs.innerHTML+='<option value="'+k+'">'+vv[k].name+'</option>';}
@@ -474,6 +536,7 @@ drawer:openDrawer,
 close:closeDrawer,
 proses:function(code){
 closeDrawer();
+if(fullOn)setFull(false);
 switchTab('analysis');
 setTimeout(function(){
 var inp=document.querySelector('input[placeholder*="KODE SAHAM"]');
@@ -495,4 +558,4 @@ toast('📓 '+code+' tercatat ke jurnal.');
 };
 setTimeout(mount,1200);
 })();
-/* END screenerpro v2 */
+/* END screenerpro v3 */
