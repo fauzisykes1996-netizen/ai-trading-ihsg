@@ -1,4 +1,4 @@
-/* portopro v2 - Portfolio Pro: pinned top Porto + chip pintasan lintas tab + undo + ledger scroll custom + kas/ledger/equity/realized/lifecycle/heat/sizing/sync */
+/* portopro v3 - Portfolio Pro: cash auto-save, sync otomatis ke Doctor/Heat/Plan, impor posisi core, ledger+realized+lifecycle+equity */
 (function(){
 if(!window.P||!window.SW)return;
 var SW=window.SW;
@@ -6,10 +6,24 @@ var NL=String.fromCharCode(10);
 var busy=false;
 var undoSnap=null;
 var undoTimer=0;
+var cashTimer=0;
 function txs(){var a=lsJSON('portopro_tx',[]);return Array.isArray(a)?a:[];}
 function saveTxs(a){saveLS('portopro_tx',a);}
 function cash(){var c=parseFloat(localStorage.getItem('portopro_cash'));return isFinite(c)?c:0;}
 function setCash(v){localStorage.setItem('portopro_cash',String(v));}
+function looksPos(o){if(!o||typeof o!=='object')return false;var c=!!(o.t||o.code||o.ticker||o.symbol||o.kode);var l=!!(o.lot||o.qty||o.shares||o.jumlah);var p=!!(o.avg||o.entry||o.price||o.buy||o.harga||o.avgPrice);return c&&l&&p;}
+function normPos(o){return {t:(o.t||o.code||o.ticker||o.symbol||o.kode),lot:parseFloat(o.lot||o.qty||o.shares||o.jumlah)||0,avg:parseFloat(o.avg||o.entry||o.price||o.buy||o.harga||o.avgPrice)||0};}
+function extPositions(){
+var out=[];
+var g=window.portfolio;
+if(Array.isArray(g)){for(var i=0;i<g.length;i++){if(looksPos(g[i]))out.push(normPos(g[i]));}if(out.length)return out;}
+var k1=lsJSON('ihsg_porto',null);
+if(Array.isArray(k1)){for(var a=0;a<k1.length;a++){if(looksPos(k1[a]))out.push(normPos(k1[a]));}if(out.length)return out;}
+var k2=lsJSON('ihsg_portfolio',null);
+if(Array.isArray(k2)){for(var b=0;b<k2.length;b++){if(looksPos(k2[b]))out.push(normPos(k2[b]));}if(out.length)return out;}
+if(k2&&typeof k2==='object'){var ks=Object.keys(k2);for(var c=0;c<ks.length;c++){var v=k2[ks[c]];if(v&&typeof v==='object'){var l=parseFloat(v.lot||v.qty)||0;var p=parseFloat(v.avg||v.entry||v.price)||0;if(l>0&&p>0)out.push({t:ks[c],lot:l,avg:p});}}if(out.length)return out;}
+return out;
+}
 function derive(){
 var list=txs().slice().sort(function(a,b){return a.d-b.d;});
 var pos={};var realized={};var life={};
@@ -35,16 +49,22 @@ life[code].push({d:t.d,lot:pos[code].lot,side:t.side});
 return{pos:pos,realized:realized,life:life,log:list};
 }
 function syncCore(pos){
-var map={};
+var map={};var arr=[];
 var ks=Object.keys(pos);
-for(var i=0;i<ks.length;i++){var p=pos[ks[i]];if(p.lot>0)map[ks[i]]={lot:p.lot,avg:p.avg};}
+for(var i=0;i<ks.length;i++){
+var p=pos[ks[i]];
+if(p.lot>0){map[ks[i]]={lot:p.lot,avg:p.avg};arr.push({t:ks[i],lot:p.lot,avg:p.avg});}
+}
 saveLS('ihsg_portfolio',map);
-window.portfolio=map;
+saveLS('ihsg_porto',arr);
+window.portfolio=arr;
 }
 function quickEquity(){
 var d=derive();var mv=0;var ks=Object.keys(d.pos);
 for(var i=0;i<ks.length;i++){var p=d.pos[ks[i]];if(p.lot>0)mv+=p.lot*100*((typeof cachePrice==='function'&&cachePrice(ks[i]))||p.avg);}
-return{cash:cash(),mv:mv,eq:cash()+mv,real:Object.keys(d.realized).reduce(function(a,k){return a+d.realized[k];},0)};
+var real=0;var rk=Object.keys(d.realized);
+for(var r=0;r<rk.length;r++)real+=d.realized[rk[r]];
+return{cash:cash(),mv:mv,eq:cash()+mv,real:real};
 }
 function lifeSvg(arr){
 if(!arr||arr.length<2)return '';
@@ -134,7 +154,17 @@ html+='</div>';
 html+='<div id="poBody" style="font-size:0.78rem;color:var(--text-muted);">Memuat...</div>';
 card.innerHTML=html;
 tab.insertBefore(card,tab.firstChild);
-var c=document.getElementById('poCash');if(c)c.value=cash()||'';
+var c=document.getElementById('poCash');
+if(c){
+c.value=cash()||'';
+c.addEventListener('input',function(){
+clearTimeout(cashTimer);
+cashTimer=setTimeout(function(){
+var v=parseFloat(c.value);
+if(isFinite(v)&&v>=0){setCash(v);enhance();}
+},600);
+});
+}
 var cd=document.getElementById('poCode');if(cd&&window.lastTicker)cd.value=window.lastTicker;
 var px=document.getElementById('poPx');
 if(px&&window.lastTicker&&typeof cachePrice==='function'){var cp=cachePrice(window.lastTicker);if(cp)px.value=cp;}
@@ -149,6 +179,15 @@ if(!body)return;
 busy=true;
 try{
 var d=derive();
+var ext=extPositions();
+if(d.log.length===0&&ext.length){
+var ib='<div style="font-size:0.74rem;padding:8px 10px;border:1px solid rgba(251,191,36,.4);border-radius:12px;background:rgba(251,191,36,.08);margin-bottom:8px;color:var(--yellow);">📥 Ditemukan '+ext.length+' posisi di Portfolio core yang belum ada di ledger.<br><button class="btn-copy" style="margin-top:6px;" onclick="PORTOPRO.importExt()">📥 Impor ke Ledger (sekali saja)</button></div>';
+body.innerHTML=ib;
+mountChips();
+busy=false;
+return;
+}
+if(d.log.length>0)syncCore(d.pos);
 var codes=Object.keys(d.pos);
 var cand=window.lastTicker;
 var all=codes.slice();
@@ -186,7 +225,8 @@ var grand=realTotal+unrl;
 var riskSel=document.getElementById('poRisk');
 var riskPct=riskSel?parseFloat(riskSel.value):1;
 var budget=equity*riskPct/100;
-var h='<div class="metric-grid" style="margin-bottom:8px;">';
+var h='<div style="font-size:0.68rem;color:var(--text-muted);margin-bottom:6px;">🔗 Sumber data Doctor / Heat / Plan Pro = ledger ini (sync otomatis tiap refresh).</div>';
+h+='<div class="metric-grid" style="margin-bottom:8px;">';
 h+='<div class="metric-box"><div class="metric-label">Cash</div><div class="metric-value">Rp '+fmt(csh)+'</div></div>';
 h+='<div class="metric-box"><div class="metric-label">Nilai Pasar</div><div class="metric-value">Rp '+fmt(mv)+'</div></div>';
 h+='<div class="metric-box"><div class="metric-label">Total Equity</div><div class="metric-value" style="color:#fff;">Rp '+fmt(equity)+'</div></div>';
@@ -261,6 +301,19 @@ var v=parseFloat(inp?inp.value:0);
 if(!isFinite(v)||v<0){toast('Cash tidak valid.');return;}
 setCash(v);toast('💾 Cash disimpan: Rp '+fmt(v));enhance();
 },
+importExt:function(){
+var ext=extPositions();
+if(!ext.length){toast('Tidak ada posisi core untuk diimpor.');return;}
+var list=txs();
+for(var i=0;i<ext.length;i++){
+list.push({id:Date.now()+i,t:ext[i].t,side:'BUY',lot:ext[i].lot,px:ext[i].avg,d:Date.now()});
+}
+saveTxs(list);
+var d=derive();
+syncCore(d.pos);
+toast('📥 '+ext.length+' posisi diimpor ke ledger. Doctor/Heat kini membaca ledger.');
+enhance();
+},
 addTx:function(){
 var code=(document.getElementById('poCode').value||'').toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,6);
 var side=document.getElementById('poSide').value;
@@ -306,7 +359,7 @@ enhance();
 },
 sync:function(){
 var d=derive();syncCore(d.pos);
-toast('🔄 Posisi bersih di-sync ke Portfolio core.');
+toast('🔄 Ledger di-sync ke Doctor/Heat/Plan/core.');
 enhance();
 },
 reset:function(){
@@ -349,4 +402,4 @@ if(tab&&tab.className.indexOf('active')>=0)enhance();
 },60000);
 }
 })();
-/* END portopro v2 */
+/* END portopro v3 */
