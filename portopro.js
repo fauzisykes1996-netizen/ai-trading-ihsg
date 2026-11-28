@@ -1,4 +1,4 @@
-/* portopro v3 - Portfolio Pro: cash auto-save, sync otomatis ke Doctor/Heat/Plan, impor posisi core, ledger+realized+lifecycle+equity */
+/* portopro v4 - Portfolio Pro: akuntansi benar (cash = modal - beli + jual; equity = modal + P&L), ledger+realized+lifecycle+sync Doctor/Heat/Plan+impor+undo */
 (function(){
 if(!window.P||!window.SW)return;
 var SW=window.SW;
@@ -9,10 +9,24 @@ var undoTimer=0;
 var cashTimer=0;
 function txs(){var a=lsJSON('portopro_tx',[]);return Array.isArray(a)?a:[];}
 function saveTxs(a){saveLS('portopro_tx',a);}
-function cash(){var c=parseFloat(localStorage.getItem('portopro_cash'));return isFinite(c)?c:0;}
-function setCash(v){localStorage.setItem('portopro_cash',String(v));}
+function flows(){
+var l=txs();var b=0;var s=0;
+for(var i=0;i<l.length;i++){
+var t=l[i];var lot=parseFloat(t.lot)||0;var px=parseFloat(t.px)||0;
+if(t.side==='BUY')b+=lot*100*px;else s+=lot*100*px;
+}
+return{buy:b,sell:s};
+}
+function deposit(){
+var d=parseFloat(localStorage.getItem('portopro_deposit'));
+if(isFinite(d))return d;
+var old=parseFloat(localStorage.getItem('portopro_cash'));
+return isFinite(old)?old:0;
+}
+function setDeposit(v){localStorage.setItem('portopro_deposit',String(v));}
+function cash(){var f=flows();return deposit()-f.buy+f.sell;}
 function looksPos(o){if(!o||typeof o!=='object')return false;var c=!!(o.t||o.code||o.ticker||o.symbol||o.kode);var l=!!(o.lot||o.qty||o.shares||o.jumlah);var p=!!(o.avg||o.entry||o.price||o.buy||o.harga||o.avgPrice);return c&&l&&p;}
-function normPos(o){return {t:(o.t||o.code||o.ticker||o.symbol||o.kode),lot:parseFloat(o.lot||o.qty||o.shares||o.jumlah)||0,avg:parseFloat(o.avg||o.entry||o.price||o.buy||o.harga||o.avgPrice)||0};}
+function normPos(o){return{t:(o.t||o.code||o.ticker||o.symbol||o.kode),lot:parseFloat(o.lot||o.qty||o.shares||o.jumlah)||0,avg:parseFloat(o.avg||o.entry||o.price||o.buy||o.harga||o.avgPrice)||0};}
 function extPositions(){
 var out=[];
 var g=window.portfolio;
@@ -64,7 +78,8 @@ var d=derive();var mv=0;var ks=Object.keys(d.pos);
 for(var i=0;i<ks.length;i++){var p=d.pos[ks[i]];if(p.lot>0)mv+=p.lot*100*((typeof cachePrice==='function'&&cachePrice(ks[i]))||p.avg);}
 var real=0;var rk=Object.keys(d.realized);
 for(var r=0;r<rk.length;r++)real+=d.realized[rk[r]];
-return{cash:cash(),mv:mv,eq:cash()+mv,real:real};
+var csh=cash();
+return{cash:csh,mv:mv,eq:csh+mv,real:real};
 }
 function lifeSvg(arr){
 if(!arr||arr.length<2)return '';
@@ -134,11 +149,12 @@ card.className='card';
 card.id='portoproCard';
 var html='<div class="card-title"><span>💼 Portfolio Pro</span><span class="agent-pill master">Kas + Ledger + Equity</span></div>';
 html+='<div id="poUndoBar" style="display:none;gap:8px;align-items:center;margin-bottom:8px;"></div>';
-html+='<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:8px;">';
-html+='<span style="font-size:0.7rem;color:var(--text-muted);">Cash (Rp):</span><input id="poCash" type="number" class="fv-input" style="width:130px;margin-top:0;" placeholder="uang tunai">';
+html+='<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:4px;">';
+html+='<span style="font-size:0.7rem;color:var(--text-muted);">Modal / Uang Masuk (Rp):</span><input id="poCash" type="number" class="fv-input" style="width:130px;margin-top:0;" placeholder="total modal">';
 html+='<button class="btn-mini" onclick="PORTOPRO.saveCash()">💾</button>';
 html+='<select id="poRisk" class="fv-input" style="width:74px;margin-top:0;"><option value="0.5">0.5%</option><option value="1">1%</option><option value="2">2%</option></select>';
 html+='</div>';
+html+='<div style="font-size:0.64rem;color:var(--text-muted);margin-bottom:8px;">Cash = modal − beli + jual (otomatis dari ledger) • Equity = modal + realized + unrealized.</div>';
 html+='<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:8px;">';
 html+='<input id="poCode" class="fv-input" style="width:80px;margin-top:0;" placeholder="KODE">';
 html+='<select id="poSide" class="fv-input" style="width:80px;margin-top:0;"><option value="BUY">BUY</option><option value="SELL">SELL</option></select>';
@@ -156,12 +172,12 @@ card.innerHTML=html;
 tab.insertBefore(card,tab.firstChild);
 var c=document.getElementById('poCash');
 if(c){
-c.value=cash()||'';
+c.value=deposit()||'';
 c.addEventListener('input',function(){
 clearTimeout(cashTimer);
 cashTimer=setTimeout(function(){
 var v=parseFloat(c.value);
-if(isFinite(v)&&v>=0){setCash(v);enhance();}
+if(isFinite(v)&&v>=0){setDeposit(v);enhance();}
 },600);
 });
 }
@@ -216,6 +232,8 @@ mv+=val;unrl+=u;
 heatRp+=Math.min(p.lot*100*2*atr,p.lot*100*price*0.5);
 rows.push({code:code,lot:p.lot,avg:p.avg,price:price,val:val,u:u,real:d.realized[code]||0,life:d.life[code]});
 }
+var f=flows();
+var dep=deposit();
 var csh=cash();
 var equity=csh+mv;
 var heatPct=equity>0?heatRp/equity*100:0;
@@ -226,13 +244,15 @@ var riskSel=document.getElementById('poRisk');
 var riskPct=riskSel?parseFloat(riskSel.value):1;
 var budget=equity*riskPct/100;
 var h='<div style="font-size:0.68rem;color:var(--text-muted);margin-bottom:6px;">🔗 Sumber data Doctor / Heat / Plan Pro = ledger ini (sync otomatis tiap refresh).</div>';
+h+='<div style="font-size:0.7rem;padding:6px 8px;border:1px solid var(--card-border);border-radius:10px;background:var(--card-bg);margin-bottom:8px;line-height:1.7;">🧮 Modal Rp '+fmt(dep)+' − Beli Rp '+fmt(f.buy)+' + Jual Rp '+fmt(f.sell)+' = <strong style="color:#fff;">Cash Rp '+fmt(csh)+'</strong><br>Cash Rp '+fmt(csh)+' + Nilai Pasar Rp '+fmt(mv)+' = <strong style="color:#fff;">Equity Rp '+fmt(equity)+'</strong> (= Modal + P&L '+(grand>=0?'+':'')+'Rp '+fmt(grand)+')</div>';
+if(csh<0)h+='<div style="font-size:0.72rem;padding:6px 8px;border:1px solid rgba(251,191,36,.4);border-radius:10px;background:rgba(251,191,36,.08);margin-bottom:8px;color:var(--yellow);">⚠ Cash negatif - isi Modal / Uang Masuk sesuai total uang yang Anda setor.</div>';
 h+='<div class="metric-grid" style="margin-bottom:8px;">';
 h+='<div class="metric-box"><div class="metric-label">Cash</div><div class="metric-value">Rp '+fmt(csh)+'</div></div>';
 h+='<div class="metric-box"><div class="metric-label">Nilai Pasar</div><div class="metric-value">Rp '+fmt(mv)+'</div></div>';
 h+='<div class="metric-box"><div class="metric-label">Total Equity</div><div class="metric-value" style="color:#fff;">Rp '+fmt(equity)+'</div></div>';
 h+='<div class="metric-box"><div class="metric-label">Cash / Invested</div><div class="metric-value">'+(equity>0?(csh/equity*100).toFixed(0):0)+'% / '+(equity>0?(mv/equity*100).toFixed(0):0)+'%</div></div>';
 h+='</div>';
-h+='<div style="font-size:0.72rem;padding:6px 8px;border:1px solid var(--card-border);border-radius:10px;background:var(--card-bg);margin-bottom:8px;">🌡️ Heat vs Equity: <strong class="'+(heatPct<3?'green':heatPct<=6?'yellow':'red')+'">'+heatPct.toFixed(1)+'%</strong> • Risk budget '+riskPct+'% = Rp '+fmt(budget)+' • Buying power Rp '+fmt(csh)+'</div>';
+h+='<div style="font-size:0.72rem;padding:6px 8px;border:1px solid var(--card-border);border-radius:10px;background:var(--card-bg);margin-bottom:8px;">🌡️ Heat vs Equity: <strong class="'+(heatPct<3?'green':heatPct<=6?'yellow':'red')+'">'+heatPct.toFixed(1)+'%</strong> • Risk budget '+riskPct+'% = Rp '+fmt(budget)+' • Buying power Rp '+fmt(Math.max(0,csh))+'</div>';
 h+='<div class="metric-grid" style="margin-bottom:8px;">';
 h+='<div class="metric-box"><div class="metric-label">Realized P&L</div><div class="metric-value '+(realTotal>=0?'green':'red')+'">'+(realTotal>=0?'+':'')+'Rp '+fmt(realTotal)+'</div></div>';
 h+='<div class="metric-box"><div class="metric-label">Unrealized P&L</div><div class="metric-value '+(unrl>=0?'green':'red')+'">'+(unrl>=0?'+':'')+'Rp '+fmt(unrl)+'</div></div>';
@@ -244,7 +264,7 @@ var inf2=info[cand];
 var entry=inf2.ma20;var sl=inf2.sup-0.3*inf2.atr;
 var per=entry-sl;
 var lotRisk=per>0?Math.floor(budget/per/100):0;
-var lotCash=Math.floor(csh/inf2.price/100);
+var lotCash=Math.floor(Math.max(0,csh)/inf2.price/100);
 var lot=Math.min(lotRisk,lotCash);
 var constrained=lotCash<lotRisk;
 h+='<div style="font-size:0.72rem;padding:6px 8px;border:1px solid var(--card-border);border-radius:10px;background:var(--card-bg);margin-bottom:8px;">🧮 Sizing '+cand+' vs equity: <strong style="color:#fff;">'+lot+' lot</strong> (risiko Rp '+fmt(lot*100*per)+') '+(constrained?'<span class="yellow">⚠ cash membatasi - ukuran penuh butuh Rp '+fmt(lotRisk*100*inf2.price)+'</span>':'<span class="green">🟢 cash cukup</span>')+'</div>';
@@ -274,9 +294,11 @@ if(!log.length)h+='<div style="font-size:0.72rem;">Ledger kosong.</div>';
 for(var L=0;L<log.length;L++){
 var t=log[L];
 var sc=t.side==='BUY'?'green':'red';
+var amt=(parseFloat(t.lot)||0)*100*(parseFloat(t.px)||0);
+var cf=t.side==='BUY'?'cash −Rp '+fmt(amt):'cash +Rp '+fmt(amt);
 var rz=t.side==='SELL'&&t.realized!=null?' • realized '+(t.realized>=0?'+':'')+'Rp '+fmt(t.realized):'';
 h+='<div style="display:flex;justify-content:space-between;align-items:center;font-size:0.7rem;padding:3px 0;border-bottom:1px dashed rgba(255,255,255,.05);">';
-h+='<span><span class="'+sc+'" style="font-weight:800;">'+t.side+'</span> '+t.t+' '+t.lot+' lot @ '+fmt(t.px)+' <span style="color:var(--text-muted);font-size:0.62rem;">'+new Date(t.d).toLocaleDateString('id-ID')+'</span>'+rz+'</span>';
+h+='<span><span class="'+sc+'" style="font-weight:800;">'+t.side+'</span> '+t.t+' '+t.lot+' lot @ '+fmt(t.px)+' <span style="color:var(--text-muted);font-size:0.62rem;">'+new Date(t.d).toLocaleDateString('id-ID')+' • '+cf+'</span>'+rz+'</span>';
 h+='<button class="btn-mini" onclick="PORTOPRO.delTx('+t.id+')">✕</button>';
 h+='</div>';
 }
@@ -298,8 +320,8 @@ refresh:function(){busy=false;enhance();},
 saveCash:function(){
 var inp=document.getElementById('poCash');
 var v=parseFloat(inp?inp.value:0);
-if(!isFinite(v)||v<0){toast('Cash tidak valid.');return;}
-setCash(v);toast('💾 Cash disimpan: Rp '+fmt(v));enhance();
+if(!isFinite(v)||v<0){toast('Modal tidak valid.');return;}
+setDeposit(v);toast('💾 Modal disimpan: Rp '+fmt(v));enhance();
 },
 importExt:function(){
 var ext=extPositions();
@@ -311,7 +333,7 @@ list.push({id:Date.now()+i,t:ext[i].t,side:'BUY',lot:ext[i].lot,px:ext[i].avg,d:
 saveTxs(list);
 var d=derive();
 syncCore(d.pos);
-toast('📥 '+ext.length+' posisi diimpor ke ledger. Doctor/Heat kini membaca ledger.');
+toast('📥 '+ext.length+' posisi diimpor. Lengkapi Modal agar cash tidak negatif.');
 enhance();
 },
 addTx:function(){
@@ -330,17 +352,18 @@ list.push({id:Date.now()+Math.floor(Math.random()*999),t:code,side:side,lot:lot,
 saveTxs(list);
 var nd=derive();
 syncCore(nd.pos);
+var amt=lot*100*px;
 if(side==='SELL'){
 var lt=list[list.length-1];
-toast('🧾 SELL tercatat '+(lt.realized!=null?'(realized '+(lt.realized>=0?'+':'')+'Rp '+fmt(lt.realized)+')':''));
+toast('🧾 SELL tercatat • cash +Rp '+fmt(amt)+(lt.realized!=null?' • realized '+(lt.realized>=0?'+':'')+'Rp '+fmt(lt.realized):''));
 }else{
-toast('🧾 BUY tercatat '+code+' '+lot+' lot.');
+toast('🧾 BUY tercatat • cash −Rp '+fmt(amt));
 }
 document.getElementById('poLot').value='';
 enhance();
 },
 delTx:function(id){
-undoSnap={txs:txs(),cash:cash()};
+undoSnap={txs:txs(),dep:deposit()};
 var list=txs().filter(function(t){return t.id!==id;});
 saveTxs(list);
 var d=derive();syncCore(d.pos);
@@ -349,8 +372,8 @@ enhance();
 },
 undo:function(){
 if(!undoSnap){toast('Tidak ada yang bisa di-undo.');return;}
-saveTxs(undoSnap.txs);setCash(undoSnap.cash);
-var c=document.getElementById('poCash');if(c)c.value=undoSnap.cash||'';
+saveTxs(undoSnap.txs);setDeposit(undoSnap.dep);
+var c=document.getElementById('poCash');if(c)c.value=undoSnap.dep||'';
 var d=derive();syncCore(d.pos);
 undoSnap=null;
 var bar=document.getElementById('poUndoBar');if(bar)bar.style.display='none';
@@ -363,9 +386,9 @@ toast('🔄 Ledger di-sync ke Doctor/Heat/Plan/core.');
 enhance();
 },
 reset:function(){
-if(!window.confirm('Hapus seluruh ledger & cash?'))return;
-undoSnap={txs:txs(),cash:cash()};
-saveTxs([]);setCash(0);
+if(!window.confirm('Hapus seluruh ledger & modal?'))return;
+undoSnap={txs:txs(),dep:deposit()};
+saveTxs([]);setDeposit(0);
 var c=document.getElementById('poCash');if(c)c.value='';
 syncCore({});
 showUndo('Ledger direset.');
@@ -376,7 +399,7 @@ var d=derive();
 var csh=cash();var mv=0;var lines=[];
 var ks=Object.keys(d.pos);
 for(var i=0;i<ks.length;i++){var p=d.pos[ks[i]];if(p.lot<=0)continue;var inf=(typeof cachePrice==='function'&&cachePrice(ks[i]))||p.avg;mv+=p.lot*100*inf;lines.push(ks[i]+' '+p.lot+' lot @ '+fmt(p.avg));}
-var t='PORTFOLIO PRO'+NL+'Cash Rp '+fmt(csh)+NL+'Nilai Pasar Rp '+fmt(mv)+NL+'Equity Rp '+fmt(csh+mv)+NL+lines.join(NL);
+var t='PORTFOLIO PRO'+NL+'Modal Rp '+fmt(deposit())+NL+'Cash Rp '+fmt(csh)+NL+'Nilai Pasar Rp '+fmt(mv)+NL+'Equity Rp '+fmt(csh+mv)+NL+lines.join(NL);
 if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(function(){toast('📋 Ringkasan disalin.');}).catch(function(){window.prompt('Ringkasan:',t);});}
 else window.prompt('Ringkasan:',t);
 },
@@ -402,4 +425,4 @@ if(tab&&tab.className.indexOf('active')>=0)enhance();
 },60000);
 }
 })();
-/* END portopro v3 */
+/* END portopro v4 */
